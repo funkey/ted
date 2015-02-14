@@ -18,7 +18,8 @@ util::ProgramOption optionReportRand(
 util::ProgramOption optionReportTed(
 		util::_module           = "evaluation",
 		util::_long_name        = "reportTed",
-		util::_description_text = "Compute the tolerant edit distance for the error report.");
+		util::_description_text = "Compute the tolerant edit distance for the error report.",
+		util::_default_value    = true);
 
 util::ProgramOption optionGrowSlices(
 		util::_module           = "evaluation",

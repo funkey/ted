@@ -8,6 +8,7 @@
 #include <pipeline/Process.h>
 #include <pipeline/Value.h>
 #include <evaluation/ErrorReport.h>
+#include <evaluation/ExtractGroundTruthLabels.h>
 #include <evaluation/TolerantEditDistanceErrorsWriter.h>
 #include <util/ProgramOptions.h>
 #include <util/Logger.h>
@@ -18,6 +19,11 @@ util::ProgramOption optionGroundTruth(
 		util::_long_name        = "groundTruth",
 		util::_description_text = "The ground truth image stack.",
 		util::_default_value    = "groundtruth");
+
+util::ProgramOption optionExtractGroundTruthLabels(
+		util::_long_name        = "extractGroundTruthLabels",
+		util::_description_text = "Indicate that the ground truth consists of a foreground/background labeling "
+		                          "(dark/bright) and each 4-connected component of foreground represents one region.");
 
 util::ProgramOption optionReconstruction(
 		util::_long_name        = "reconstruction",
@@ -56,8 +62,20 @@ int main(int optionc, char** optionv) {
 		// setup error report
 
 		pipeline::Process<ErrorReport> report;
-		report->setInput("ground truth", groundTruthReader->getOutput());
 		report->setInput("reconstruction", reconstructionReader->getOutput());
+
+		if (optionExtractGroundTruthLabels) {
+
+			LOG_USER(out) << "[main] extracting ground truth labels from connected components" << std::endl;
+
+			pipeline::Process<ExtractGroundTruthLabels> extractLabels;
+			extractLabels->setInput(groundTruthReader->getOutput());
+			report->setInput("ground truth", extractLabels->getOutput());
+
+		} else {
+
+			report->setInput("ground truth", groundTruthReader->getOutput());
+		}
 
 		// save results
 
