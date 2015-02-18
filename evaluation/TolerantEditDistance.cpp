@@ -25,9 +25,11 @@ util::ProgramOption optionGroundTruthFromSkeletons(
 
 util::ProgramOption optionToleranceDistanceThreshold(
 		util::_module           = "evaluation",
-		util::_long_name        = "toleranceDistanceThreshold",
-		util::_description_text = "The maximum allowed distance for a boundary shift in nm.",
-		util::_default_value    = 100);
+		util::_long_name        = "maxBoundaryShift",
+		util::_description_text = "The maximum allowed distance for a boundary shift in image stack units. The default number of units per voxel is 1.0. "
+		                          "This can be changed by placing a file META in the image stack directory, with the keys 'resX=<..>', "
+		                          "'resY=<...>', and 'resZ=<...>', which give the number of units per edge of a voxel.",
+		util::_default_value    = 10);
 
 util::ProgramOption optionHaveBackgroundLabel(
 		util::_module           = "evaluation",
@@ -158,6 +160,11 @@ TolerantEditDistance::extractCells() {
 	_numCells = vigra::labelMultiArray(gtAndRec, cellIds);
 
 	LOG_DEBUG(tedlog) << "found " << _numCells << " cells" << std::endl;
+
+	_toleranceFunction->setResolution(
+			_reconstruction->getResolutionX(),
+			_reconstruction->getResolutionY(),
+			_reconstruction->getResolutionZ());
 
 	// let tolerance function extract cells from that
 	_toleranceFunction->extractCells(

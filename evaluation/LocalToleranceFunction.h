@@ -23,7 +23,22 @@ public:
 	typedef Cell<float>                             cell_t;
 	typedef boost::shared_ptr<std::vector<cell_t> > cells_t;
 
+	LocalToleranceFunction() :
+		_resolutionX(1.0),
+		_resolutionY(1.0),
+		_resolutionZ(1.0) {}
+
 	virtual ~LocalToleranceFunction() {}
+
+	/**
+	 * Set the number of units for each edge of a voxel.
+	 */
+	void setResolution(float resX, float resY, float resZ) {
+
+		_resolutionX = resX;
+		_resolutionY = resY;
+		_resolutionZ = resZ;
+	}
 
 	/**
 	 * Clear all extracted cells and supplemental data structures.
@@ -84,6 +99,11 @@ protected:
 
 	// all extracted cells
 	cells_t _cells;
+
+	// the size of one voxel
+	float _resolutionX;
+	float _resolutionY;
+	float _resolutionZ;
 
 private:
 

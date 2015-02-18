@@ -27,7 +27,7 @@ ExtractGroundTruthLabels::updateOutputs() {
 	}
 
 	vigra::MultiArray<3, float> gtLabels(vigra::Shape3(width, height, depth));
-	unsigned int numRegions = vigra::labelMultiArrayWithBackground(
+	vigra::labelMultiArrayWithBackground(
 			gtVolume,
 			gtLabels);
 

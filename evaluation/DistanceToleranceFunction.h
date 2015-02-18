@@ -55,11 +55,6 @@ private:
 	// the distance threshold in nm
 	float _maxDistanceThreshold;
 
-	// the size of one voxel
-	float _resolutionX;
-	float _resolutionY;
-	float _resolutionZ;
-
 	// the distance threshold in pixels for each direction
 	int _maxDistanceThresholdX;
 	int _maxDistanceThresholdY;

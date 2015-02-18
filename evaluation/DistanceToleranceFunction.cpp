@@ -11,12 +11,7 @@ DistanceToleranceFunction::DistanceToleranceFunction(
 		float backgroundLabel) :
 	_haveBackgroundLabel(haveBackgroundLabel),
 	_backgroundLabel(backgroundLabel),
-	_maxDistanceThreshold(distanceThreshold) {
-
-	_resolutionX = 4.0;
-	_resolutionY = 4.0;
-	_resolutionZ = 40.0;
-}
+	_maxDistanceThreshold(distanceThreshold) {}
 
 void
 DistanceToleranceFunction::extractCells(
