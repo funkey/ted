@@ -211,7 +211,7 @@ TolerantEditDistanceErrors::updateErrorCounts() {
 	if (!_dirty)
 		return;
 
-	boost::timer::auto_cpu_timer timer("\tTolerantEditDistanceErrors::updateErrorCounts():\t\t%w\n");
+	//boost::timer::auto_cpu_timer timer("\tTolerantEditDistanceErrors::updateErrorCounts():\t\t%w\n");
 
 	_dirty = false;
 

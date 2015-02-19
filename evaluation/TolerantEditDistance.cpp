@@ -121,7 +121,7 @@ TolerantEditDistance::clear() {
 void
 TolerantEditDistance::extractCells() {
 
-	boost::timer::auto_cpu_timer timer(std::cout, "\textractCells():\t\t\t\t%ws\n");
+	//boost::timer::auto_cpu_timer timer(std::cout, "\textractCells():\t\t\t\t%ws\n");
 
 	if (_groundTruth->size() != _reconstruction->size())
 		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("ground truth and reconstruction have different size") << STACK_TRACE);
@@ -185,7 +185,7 @@ TolerantEditDistance::extractCells() {
 void
 TolerantEditDistance::findBestCellLabels() {
 
-	boost::timer::auto_cpu_timer timer(std::cout, "\tfindBestCellLabels():\t\t\t%ws\n");
+	//boost::timer::auto_cpu_timer timer(std::cout, "\tfindBestCellLabels():\t\t\t%ws\n");
 
 	pipeline::Value<LinearConstraints>      constraints;
 	pipeline::Value<LinearSolverParameters> parameters;
@@ -385,7 +385,7 @@ TolerantEditDistance::findBestCellLabels() {
 void
 TolerantEditDistance::findErrors() {
 
-	boost::timer::auto_cpu_timer timer(std::cout, "\tfindErrors():\t\t\t\t%ws\n");
+	//boost::timer::auto_cpu_timer timer(std::cout, "\tfindErrors():\t\t\t\t%ws\n");
 
 	// prepare error location image stack
 
@@ -465,7 +465,7 @@ TolerantEditDistance::findErrors() {
 void
 TolerantEditDistance::correctReconstruction() {
 
-	boost::timer::auto_cpu_timer timer(std::cout, "\tcorrectReconstruction():\t\t%ws\n");
+	//boost::timer::auto_cpu_timer timer(std::cout, "\tcorrectReconstruction():\t\t%ws\n");
 
 	// prepare output image
 

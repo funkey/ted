@@ -81,8 +81,6 @@ LinearSolver::onParametersModified(const pipeline::Modified&) {
 void
 LinearSolver::updateOutputs() {
 
-	boost::timer::auto_cpu_timer timer("\tLinearSolver::updateOutputs()\t\t%ws\n");
-
 	updateLinearProgram();
 
 	solve();
@@ -152,7 +150,7 @@ LinearSolver::solve() {
 
 	if (_solver->solve(*_solution, value, message)) {
 
-		LOG_USER(linearsolverlog) << "optimal solution found" << std::endl;
+		LOG_DEBUG(linearsolverlog) << "optimal solution found" << std::endl;
 
 	} else {
 

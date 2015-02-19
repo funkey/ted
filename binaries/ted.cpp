@@ -47,8 +47,7 @@ int main(int optionc, char** optionv) {
 
 		// init logger
 		LogManager::init();
-
-		LOG_USER(out) << "[main] starting..." << std::endl;
+		Logger::showChannelPrefix(false);
 
 		/*********
 		 * SETUP *
@@ -66,7 +65,7 @@ int main(int optionc, char** optionv) {
 
 		if (optionExtractGroundTruthLabels) {
 
-			LOG_USER(out) << "[main] extracting ground truth labels from connected components" << std::endl;
+			LOG_DEBUG(out) << "[main] extracting ground truth labels from connected components" << std::endl;
 
 			pipeline::Process<ExtractGroundTruthLabels> extractLabels;
 			extractLabels->setInput(groundTruthReader->getOutput());
