@@ -78,19 +78,19 @@ int main(int optionc, char** optionv) {
 
 		// save results
 
-		//pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
+		pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
 		//pipeline::Process<ImageStackDirectoryWriter> splitsWriter("splits");
 		//pipeline::Process<ImageStackDirectoryWriter> mergesWriter("merges");
 		//pipeline::Process<ImageStackDirectoryWriter> fpWriter("false_positives");
 		//pipeline::Process<ImageStackDirectoryWriter> fnWriter("false_negatives");
 
-		//correctedWriter->setInput(editDistance->getOutput("corrected reconstruction"));
+		correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
 		//splitsWriter->setInput(editDistance->getOutput("splits"));
 		//mergesWriter->setInput(editDistance->getOutput("merges"));
 		//fpWriter->setInput(editDistance->getOutput("false positives"));
 		//fnWriter->setInput(editDistance->getOutput("false negatives"));
 
-		//correctedWriter->write();
+		correctedWriter->write();
 		//splitsWriter->write();
 		//mergesWriter->write();
 		//fpWriter->write();

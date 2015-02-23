@@ -493,6 +493,8 @@ TolerantEditDistance::correctReconstruction() {
 void
 TolerantEditDistance::assignIndicatorVariable(unsigned int var, unsigned int cellIndex, float gtLabel, float recLabel) {
 
+	LOG_ALL(tedlog) << "gt region " << gtLabel << " can be mapped to rec " << recLabel << std::endl;
+
 	_indicatorVarsByRecLabel[recLabel].push_back(var);
 	_indicatorVarsByGtToRecLabel[gtLabel][recLabel].push_back(var);
 

@@ -55,6 +55,8 @@ ErrorReport::ErrorReport() :
 	registerOutput(_reportAssembler->getOutput("error report header"), "error report header");
 	registerOutput(_reportAssembler->getOutput("error report"), "error report");
 	registerOutput(_reportAssembler->getOutput("human readable error report"), "human readable error report");
+
+	registerOutput(_ted->getOutput("corrected reconstruction"), "ted corrected reconstruction");
 }
 
 void
