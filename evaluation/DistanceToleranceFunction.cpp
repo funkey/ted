@@ -144,6 +144,15 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 
 		std::set<float> alternativeLabels = getAlternativeLabels(cell, neighborhood, recLabels);
 
+		// if there are alternatives, include the background label as well (since a 
+		// background label can be created between two foreground labels -- 
+		// sufficient condition is that the cell is covered by another cell of 
+		// different label, which is the case when there is at least one 
+		// alternative)
+		if (_haveBackgroundLabel)
+			if (alternativeLabels.size() > 0)
+				alternativeLabels.insert(_backgroundLabel);
+
 		LOG_ALL(distancetolerancelog) << "; can map to ";
 
 		// for each alternative label
