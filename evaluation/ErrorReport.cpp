@@ -15,6 +15,12 @@ util::ProgramOption optionReportRand(
 		util::_long_name        = "reportRand",
 		util::_description_text = "Compute the RAND index for the error report.");
 
+util::ProgramOption optionReportDetectionOverlap(
+		util::_module           = "evaluation",
+		util::_long_name        = "reportDetectionOverlap",
+		util::_description_text = "Compute the detection overlap for the error report.",
+		util::_default_value    = true);
+
 util::ProgramOption optionReportTed(
 		util::_module           = "evaluation",
 		util::_long_name        = "reportTed",
@@ -44,6 +50,12 @@ ErrorReport::ErrorReport() :
 
 		_reportAssembler->addInput("errors", _rand->getOutput("errors"));
 		registerOutput(_rand->getOutput("errors"), "rand errors");
+	}
+
+	if (optionReportDetectionOverlap) {
+
+		_reportAssembler->addInput("errors", _detectionOverlap->getOutput("errors"));
+		registerOutput(_detectionOverlap->getOutput("errors"), "detection overlap errors");
 	}
 
 	if (optionReportTed) {
@@ -85,6 +97,8 @@ ErrorReport::updateOutputs() {
 
 	_voi->setInput("stack 1", _groundTruthIdMap);
 	_rand->setInput("stack 1", _groundTruthIdMap);
+	_detectionOverlap->setInput("stack 1", _groundTruthIdMap);
+	_detectionOverlap->setInput("stack 2", _reconstruction);
 	_ted->setInput("ground truth", _groundTruthIdMap);
 	_ted->setInput("reconstruction", _reconstruction);
 

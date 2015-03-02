@@ -6,6 +6,7 @@
 #include <imageprocessing/ImageStack.h>
 #include "VariationOfInformation.h"
 #include "RandIndex.h"
+#include "DetectionOverlap.h"
 #include "TolerantEditDistance.h"
 
 class ErrorReport : public pipeline::SimpleProcessNode<> {
@@ -88,6 +89,7 @@ private:
 
 	pipeline::Process<VariationOfInformation> _voi;
 	pipeline::Process<RandIndex>              _rand;
+	pipeline::Process<DetectionOverlap>       _detectionOverlap;
 	pipeline::Process<TolerantEditDistance>   _ted;
 	pipeline::Process<ReportAssembler>        _reportAssembler;
 

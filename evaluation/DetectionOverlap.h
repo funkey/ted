@@ -1,6 +1,7 @@
 #ifndef TED_DETECTION_OVERLAP_H__
 #define TED_DETECTION_OVERLAP_H__
 
+#include <util/point.hpp>
 #include <pipeline/SimpleProcessNode.h>
 #include <imageprocessing/ImageStack.h>
 #include "DetectionOverlapErrors.h"
@@ -25,6 +26,20 @@ public:
 private:
 
 	void updateOutputs();
+
+	void getCenterPoints(
+			const Image&                          image,
+			std::map<float, util::point<float> >& centers,
+			std::set<float>&                      labels,
+			std::map<float, unsigned int>&        sizes);
+
+	void getOverlaps(
+			const Image& a,
+			const Image& b,
+			std::set<std::pair<float, float> >& overlapPairs,
+			std::map<std::pair<float, float>, unsigned int>& overlapAreas,
+			std::map<float, std::set<float> >& atob,
+			std::map<float, std::set<float> >& btoa);
 
 	// input image stacks
 	pipeline::Input<ImageStack> _stack1;
