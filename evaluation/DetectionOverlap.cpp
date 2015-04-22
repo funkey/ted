@@ -36,6 +36,9 @@ DetectionOverlap::updateOutputs() {
 	getCenterPoints(*(*_stack1)[0], gtCenters, gtLabels, gtSizes);
 	getCenterPoints(*(*_stack2)[0], recCenters, recLabels, recSizes);
 
+	LOG_DEBUG(detectionoverlaplog) << "there are " << gtCenters.size() << " ground truth regions" << std::endl;
+	LOG_DEBUG(detectionoverlaplog) << "there are " << recCenters.size() << " reconstruction regions" << std::endl;
+
 	std::set<pair_t>                  overlapPairs;
 	std::map<pair_t, unsigned int>    overlapAreas;
 	std::map<float, std::set<float> > gtToRecOverlaps;
@@ -49,6 +52,10 @@ DetectionOverlap::updateOutputs() {
 			gtToRecOverlaps,
 			recToGtOverlaps);
 
+	LOG_DEBUG(detectionoverlaplog) << "ground truth contains "   << gtToRecOverlaps.size() << " regions with overlapping reconstruction regions" << std::endl;
+	LOG_DEBUG(detectionoverlaplog) << "reconstruction contains " << recToGtOverlaps.size() << " regions with overlapping ground truth regions" << std::endl;
+	LOG_DEBUG(detectionoverlaplog) << "found " << overlapPairs.size() << " possible matches by overlap" << std::endl;
+
 	// get a score for each possible overlap
 	std::map<pair_t, float> matchingScore;
 	float maxScore = 0;
@@ -57,10 +64,14 @@ DetectionOverlap::updateOutputs() {
 		util::point<float> gtCenter  = gtCenters[p.first];
 		util::point<float> recCenter = recCenters[p.second];
 
+		// ensure that the score is strictly positive (so that we break ties in 
+		// the ILP later)
 		float score =
-				sqrt(
-						pow(gtCenter.x - recCenter.x, 2.0) +
-						pow(gtCenter.y - recCenter.y, 2.0));
+				std::max(
+						0.5,
+						sqrt(
+								pow(gtCenter.x - recCenter.x, 2.0) +
+								pow(gtCenter.y - recCenter.y, 2.0)));
 
 		matchingScore[p] = score;
 		maxScore = std::max(score, maxScore);
@@ -150,7 +161,13 @@ DetectionOverlap::updateOutputs() {
 	std::map<float, std::set<float> > gtToRecMatches;
 	std::map<float, std::set<float> > recToGtMatches;
 	std::set<pair_t> matches;
-	for (unsigned int varNum = 0; varNum < overlapPairs.size(); varNum++)
+	for (unsigned int varNum = 0; varNum < overlapPairs.size(); varNum++) {
+
+		LOG_ALL(detectionoverlaplog)
+				<< "ILP solution for pair " << variableToPair[varNum].first
+				<< ", " << variableToPair[varNum].second
+				<< " = " << (*solution)[varNum] << std::endl;
+
 		if ((*solution)[varNum] == 1) {
 
 			pair_t match = variableToPair[varNum];
@@ -159,6 +176,7 @@ DetectionOverlap::updateOutputs() {
 			recToGtMatches[match.second].insert(match.first);
 			matches.insert(match);
 		}
+	}
 
 	LOG_DEBUG(detectionoverlaplog)
 			<< "found " << matches.size()
