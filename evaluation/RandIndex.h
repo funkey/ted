@@ -9,7 +9,14 @@ class RandIndex : public pipeline::SimpleProcessNode<> {
 
 public:
 
-	RandIndex();
+	/**
+	 * Create a new evaluator.
+	 *
+	 * @param headerOnly
+	 *              If set to true, no error will be computed, only the header 
+	 *              information in Errors::errorHeader() will be set.
+	 */
+	RandIndex(bool headerOnly = false);
 
 private:
 
@@ -25,6 +32,8 @@ private:
 
 	// do not count statistics for pixels that belong to the background
 	bool _ignoreBackground;
+
+	bool _headerOnly;
 };
 
 #endif // TED_EVALUATION_RAND_INDEX_H__

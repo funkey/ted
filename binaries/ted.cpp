@@ -34,6 +34,14 @@ util::ProgramOption optionSaveErrors(
 		util::_long_name        = "saveErrors",
 		util::_description_text = "Create an image stack for every split and merge error. Be careful, this can result in a lot of data.");
 
+util::ProgramOption optionPlotFileRow(
+		util::_long_name        = "plotFileRow",
+		util::_description_text = "Create a tab-separated single-line error report, which can be used as a row in a plot file.");
+
+util::ProgramOption optionPlotFileHeader(
+		util::_long_name        = "plotFileHeader",
+		util::_description_text = "Instead of computing the errors, print a single-line column description for the plot file row, which can be used as a header in a plot file.");
+
 int main(int optionc, char** optionv) {
 
 	try {
@@ -53,62 +61,79 @@ int main(int optionc, char** optionv) {
 		 * SETUP *
 		 *********/
 
-		// setup file readers and writers
-
-		pipeline::Process<ImageStackDirectoryReader> groundTruthReader(optionGroundTruth.as<std::string>());
-		pipeline::Process<ImageStackDirectoryReader> reconstructionReader(optionReconstruction.as<std::string>());
-
 		// setup error report
 
-		pipeline::Process<ErrorReport> report;
-		report->setInput("reconstruction", reconstructionReader->getOutput());
+		pipeline::Process<ErrorReport> report(optionPlotFileHeader.as<bool>());
+		pipeline::Process<TolerantEditDistanceErrorsWriter> errorsWriter;
 
-		if (optionExtractGroundTruthLabels) {
+		if (!optionPlotFileHeader) {
 
-			LOG_DEBUG(out) << "[main] extracting ground truth labels from connected components" << std::endl;
+			// setup file readers and writers
 
-			pipeline::Process<ExtractGroundTruthLabels> extractLabels;
-			extractLabels->setInput(groundTruthReader->getOutput());
-			report->setInput("ground truth", extractLabels->getOutput());
+			pipeline::Process<ImageStackDirectoryReader> groundTruthReader(optionGroundTruth.as<std::string>());
+			pipeline::Process<ImageStackDirectoryReader> reconstructionReader(optionReconstruction.as<std::string>());
 
-		} else {
+			report->setInput("reconstruction", reconstructionReader->getOutput());
 
-			report->setInput("ground truth", groundTruthReader->getOutput());
+			if (optionExtractGroundTruthLabels) {
+
+				LOG_DEBUG(out) << "[main] extracting ground truth labels from connected components" << std::endl;
+
+				pipeline::Process<ExtractGroundTruthLabels> extractLabels;
+				extractLabels->setInput(groundTruthReader->getOutput());
+				report->setInput("ground truth", extractLabels->getOutput());
+
+			} else {
+
+				report->setInput("ground truth", groundTruthReader->getOutput());
+			}
+
+			errorsWriter->setInput("ground truth", groundTruthReader->getOutput());
+			errorsWriter->setInput("reconstruction", reconstructionReader->getOutput());
+			errorsWriter->setInput("ted errors", report->getOutput("ted errors"));
 		}
 
 		// save results
 
-		pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
+		//pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
 		//pipeline::Process<ImageStackDirectoryWriter> splitsWriter("splits");
 		//pipeline::Process<ImageStackDirectoryWriter> mergesWriter("merges");
 		//pipeline::Process<ImageStackDirectoryWriter> fpWriter("false_positives");
 		//pipeline::Process<ImageStackDirectoryWriter> fnWriter("false_negatives");
 
-		correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
+		//correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
 		//splitsWriter->setInput(editDistance->getOutput("splits"));
 		//mergesWriter->setInput(editDistance->getOutput("merges"));
 		//fpWriter->setInput(editDistance->getOutput("false positives"));
 		//fnWriter->setInput(editDistance->getOutput("false negatives"));
 
-		correctedWriter->write();
+		//correctedWriter->write();
 		//splitsWriter->write();
 		//mergesWriter->write();
 		//fpWriter->write();
 		//fnWriter->write();
 
-		if (optionSaveErrors) {
-
-			pipeline::Process<TolerantEditDistanceErrorsWriter> errorsWriter;
-			errorsWriter->setInput("ground truth", groundTruthReader->getOutput());
-			errorsWriter->setInput("reconstruction", reconstructionReader->getOutput());
-			errorsWriter->setInput("ted errors", report->getOutput("ted errors"));
-
+		if (optionSaveErrors && !optionPlotFileHeader)
 			errorsWriter->write("errors");
+
+		if (optionPlotFileHeader) {
+
+			pipeline::Value<std::string> reportText = report->getOutput("error report header");
+
+			LOG_USER(out) << *reportText << std::endl;
+
+		} else if (optionPlotFileRow) {
+
+			pipeline::Value<std::string> reportText = report->getOutput("error report");
+
+			LOG_USER(out) << *reportText << std::endl;
+
+		} else {
+
+			pipeline::Value<std::string> reportText = report->getOutput("human readable error report");
+
+			LOG_USER(out) << *reportText << std::endl;
 		}
-
-		pipeline::Value<std::string> reportText = report->getOutput("human readable error report");
-
-		LOG_USER(out) << *reportText << std::endl;
 
 	} catch (Exception& e) {
 

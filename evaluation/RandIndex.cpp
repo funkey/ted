@@ -10,22 +10,30 @@ util::ProgramOption optionRandIgnoreBackground(
 
 logger::LogChannel randindexlog("randindexlog", "[ResultEvaluator] ");
 
-RandIndex::RandIndex() :
-		_ignoreBackground(optionRandIgnoreBackground.as<bool>()) {
+RandIndex::RandIndex(bool headerOnly) :
+		_ignoreBackground(optionRandIgnoreBackground.as<bool>()),
+		_headerOnly(headerOnly) {
 
-	registerInput(_stack1, "stack 1");
-	registerInput(_stack2, "stack 2");
+	if (!_headerOnly) {
+
+		registerInput(_stack1, "stack 1");
+		registerInput(_stack2, "stack 2");
+	}
+
 	registerOutput(_errors, "errors");
 }
 
 void
 RandIndex::updateOutputs() {
 
-	if (_stack1->size() != _stack2->size())
-		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
-
 	if (!_errors)
 		_errors = new RandIndexErrors();
+
+	if (_headerOnly)
+		return;
+
+	if (_stack1->size() != _stack2->size())
+		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
 
 	unsigned int depth = _stack1->size();
 

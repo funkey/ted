@@ -49,7 +49,7 @@ util::ProgramOption optionReconstructionBackgroundLabel(
 		util::_description_text = "The value of the reconstruction background label.",
 		util::_default_value    = 0.0);
 
-TolerantEditDistance::TolerantEditDistance() :
+TolerantEditDistance::TolerantEditDistance(bool headerOnly) :
 	_haveBackgroundLabel(optionHaveBackgroundLabel || optionGroundTruthFromSkeletons),
 	_gtBackgroundLabel(optionGroundTruthBackgroundLabel),
 	_recBackgroundLabel(optionReconstructionBackgroundLabel),
@@ -58,7 +58,8 @@ TolerantEditDistance::TolerantEditDistance() :
 	_mergeLocations(new ImageStack()),
 	_fpLocations(new ImageStack()),
 	_fnLocations(new ImageStack()),
-	_errors(_haveBackgroundLabel ? new TolerantEditDistanceErrors(_gtBackgroundLabel, _recBackgroundLabel) : new TolerantEditDistanceErrors()) {
+	_errors(_haveBackgroundLabel ? new TolerantEditDistanceErrors(_gtBackgroundLabel, _recBackgroundLabel) : new TolerantEditDistanceErrors()),
+	_headerOnly(headerOnly) {
 
 	if (optionHaveBackgroundLabel) {
 		LOG_ALL(tedlog) << "started TolerantEditDistance with background label" << std::endl;
@@ -66,14 +67,18 @@ TolerantEditDistance::TolerantEditDistance() :
 		LOG_ALL(tedlog) << "started TolerantEditDistance without background label" << std::endl;
 	}
 
-	registerInput(_groundTruth, "ground truth");
-	registerInput(_reconstruction, "reconstruction");
+	if (!_headerOnly) {
 
-	registerOutput(_correctedReconstruction, "corrected reconstruction");
-	registerOutput(_splitLocations, "splits");
-	registerOutput(_mergeLocations, "merges");
-	registerOutput(_fpLocations, "false positives");
-	registerOutput(_fnLocations, "false negatives");
+		registerInput(_groundTruth, "ground truth");
+		registerInput(_reconstruction, "reconstruction");
+
+		registerOutput(_correctedReconstruction, "corrected reconstruction");
+		registerOutput(_splitLocations, "splits");
+		registerOutput(_mergeLocations, "merges");
+		registerOutput(_fpLocations, "false positives");
+		registerOutput(_fnLocations, "false negatives");
+	}
+
 	registerOutput(_errors, "errors");
 
 	if (optionGroundTruthFromSkeletons)
@@ -89,6 +94,9 @@ TolerantEditDistance::~TolerantEditDistance() {
 
 void
 TolerantEditDistance::updateOutputs() {
+
+	if (_headerOnly)
+		return;
 
 	clear();
 

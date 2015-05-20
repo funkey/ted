@@ -12,7 +12,14 @@ class VariationOfInformation : public pipeline::SimpleProcessNode<> {
 
 public:
 
-	VariationOfInformation();
+	/**
+	 * Create a new evaluator.
+	 *
+	 * @param headerOnly
+	 *              If set to true, no error will be computed, only the header 
+	 *              information in Errors::errorHeader() will be set.
+	 */
+	VariationOfInformation(bool headerOnly = false);
 
 private:
 
@@ -31,6 +38,8 @@ private:
 
 	// do not count statistics for pixels that belong to the background
 	bool _ignoreBackground;
+
+	bool _headerOnly;
 };
 
 #endif // TED_EVALUATION_VARIATION_OF_INFORMATION_H__

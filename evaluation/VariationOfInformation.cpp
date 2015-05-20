@@ -10,16 +10,28 @@ util::ProgramOption optionVoiIgnoreBackground(
 
 logger::LogChannel variationofinformationlog("variationofinformationlog", "[ResultEvaluator] ");
 
-VariationOfInformation::VariationOfInformation() :
-		_ignoreBackground(optionVoiIgnoreBackground.as<bool>()) {
+VariationOfInformation::VariationOfInformation(bool headerOnly) :
+		_ignoreBackground(optionVoiIgnoreBackground.as<bool>()),
+		_headerOnly(headerOnly) {
 
-	registerInput(_stack1, "stack 1");
-	registerInput(_stack2, "stack 2");
+	if (!_headerOnly) {
+
+		registerInput(_stack1, "stack 1");
+		registerInput(_stack2, "stack 2");
+	}
+
 	registerOutput(_errors, "errors");
 }
 
 void
 VariationOfInformation::updateOutputs() {
+
+	// set output
+	if (!_errors)
+		_errors = new VariationOfInformationErrors();
+
+	if (_headerOnly)
+		return;
 
 	if (_stack1->size() != _stack2->size())
 		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
@@ -96,9 +108,6 @@ VariationOfInformation::updateOutputs() {
 
 	// H(stack 1, stack2)
 	double H12 = H1 + H2 - I;
-
-	// set output
-	_errors = new VariationOfInformationErrors();
 
 	// We compare stack1 to stack2. Thus, the split entropy represents the 
 	// number of splits from stack1 to stack2, and the merge entropy the number 

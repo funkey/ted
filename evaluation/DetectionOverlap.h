@@ -21,7 +21,14 @@ class DetectionOverlap : public pipeline::SimpleProcessNode<> {
 
 public:
 
-	DetectionOverlap();
+	/**
+	 * Create a new evaluator.
+	 *
+	 * @param headerOnly
+	 *              If set to true, no error will be computed, only the header 
+	 *              information in Errors::errorHeader() will be set.
+	 */
+	DetectionOverlap(bool headerOnly = false);
 
 private:
 
@@ -46,6 +53,8 @@ private:
 	pipeline::Input<ImageStack> _stack2;
 
 	pipeline::Output<DetectionOverlapErrors> _errors;
+
+	bool _headerOnly;
 };
 
 #endif // TED_DETECTION_OVERLAP_H__

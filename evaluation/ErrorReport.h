@@ -13,7 +13,15 @@ class ErrorReport : public pipeline::SimpleProcessNode<> {
 
 public:
 
-	ErrorReport();
+	/**
+	 * Create a new error report.
+	 *
+	 * @param headerOnly
+	 *              If set to true, no error will be computed, only the header 
+	 *              information for the output "error report header" will be 
+	 *              fetched.
+	 */
+	ErrorReport(bool headerOnly = false);
 
 private:
 
@@ -21,12 +29,17 @@ private:
 
 	public:
 
-		ReportAssembler() {
+		ReportAssembler(bool headerOnly) :
+				_headerOnly(headerOnly) {
 
 			registerInputs(_errors, "errors");
 			registerOutput(_reportHeader, "error report header");
-			registerOutput(_report, "error report");
-			registerOutput(_humanReadableReport, "human readable error report");
+
+			if (!_headerOnly) {
+
+				registerOutput(_report, "error report");
+				registerOutput(_humanReadableReport, "human readable error report");
+			}
 		}
 
 	private:
@@ -42,15 +55,20 @@ private:
 				if (!_reportHeader->empty())
 					(*_reportHeader) += "\t";
 
-				if (!_report->empty())
-					(*_report) += "\t";
+				(*_reportHeader) += errors->errorHeader();
 
-				if (!_humanReadableReport->empty())
-					(*_humanReadableReport) += "; ";
+				if (!_headerOnly) {
 
-				(*_reportHeader)        += errors->errorHeader();
-				(*_report)              += errors->errorString();
-				(*_humanReadableReport) += errors->humanReadableErrorString();
+					if (!_report->empty())
+						(*_report) += "\t";
+
+					if (!_humanReadableReport->empty())
+						(*_humanReadableReport) += "; ";
+
+					(*_report)              += errors->errorString();
+					(*_humanReadableReport) += errors->humanReadableErrorString();
+				}
+
 			}
 		}
 
@@ -58,6 +76,8 @@ private:
 		pipeline::Output<std::string> _reportHeader;
 		pipeline::Output<std::string> _report;
 		pipeline::Output<std::string> _humanReadableReport;
+
+		bool _headerOnly;
 	};
 
 	/**

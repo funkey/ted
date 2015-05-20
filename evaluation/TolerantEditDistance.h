@@ -13,7 +13,14 @@ class TolerantEditDistance : public pipeline::SimpleProcessNode<> {
 
 public:
 
-	TolerantEditDistance();
+	/**
+	 * Create a new evaluator.
+	 *
+	 * @param headerOnly
+	 *              If set to true, no error will be computed, only the header 
+	 *              information in Errors::errorHeader() will be set.
+	 */
+	TolerantEditDistance(bool headerOnly);
 
 	~TolerantEditDistance();
 
@@ -94,6 +101,8 @@ private:
 
 	// the solution of the ILP
 	pipeline::Value<Solution> _solution;
+
+	bool _headerOnly;
 };
 
 #endif // TED_EVALUATION_TOLERANT_EDIT_DISTANCE_H__

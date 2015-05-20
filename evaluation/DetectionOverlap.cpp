@@ -7,17 +7,26 @@
 
 logger::LogChannel detectionoverlaplog("detectionoverlaplog", "[DetectionOverlap] ");
 
-DetectionOverlap::DetectionOverlap() {
+DetectionOverlap::DetectionOverlap(bool headerOnly) :
+		_headerOnly(headerOnly) {
 
-	registerInput(_stack1, "stack 1");
-	registerInput(_stack2, "stack 2");
+	if (!_headerOnly) {
+
+		registerInput(_stack1, "stack 1");
+		registerInput(_stack2, "stack 2");
+	}
+
 	registerOutput(_errors, "errors");
 }
 
 void
 DetectionOverlap::updateOutputs() {
 
-	_errors = new DetectionOverlapErrors();
+	if (!_errors)
+		_errors = new DetectionOverlapErrors();
+
+	if (_headerOnly)
+		return;
 
 	if (_stack1->size() != 1 || _stack2->size() != 1)
 		UTIL_THROW_EXCEPTION(
