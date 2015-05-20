@@ -129,6 +129,7 @@ public:
 	std::string errorString() {
 
 		std::stringstream ss;
+		ss << std::scientific << std::setprecision(5);
 		ss << _fps.size() << "\t";
 		ss << _fns.size() << "\t";
 		ss << getPrecision() << "\t";
@@ -137,7 +138,7 @@ public:
 		ss << getMeanM1() << "\t";
 		ss << getStdDevM1() << "\t";
 		ss << getMeanM2() << "\t";
-		ss << getStdDevM2() << std::endl;
+		ss << getStdDevM2();
 
 		return ss.str();
 	}
@@ -153,7 +154,7 @@ public:
 		ss << "DO_MEAN_M1: " << getMeanM1() << ", ";
 		ss << "DO_STD_M1: "  << getStdDevM1() << ", ";
 		ss << "DO_MEAN_M2: " << getMeanM2() << ", ";
-		ss << "DO_STD_M2: "  << getStdDevM2() << std::endl;
+		ss << "DO_STD_M2: "  << getStdDevM2();
 
 		return ss.str();
 	}

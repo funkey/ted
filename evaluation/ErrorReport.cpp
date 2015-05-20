@@ -42,8 +42,11 @@ ErrorReport::ErrorReport(bool headerOnly) :
 		_reportAssembler(headerOnly),
 		_pipelineSetup(false) {
 
-	registerInput(_groundTruthIdMap, "ground truth");
-	registerInput(_reconstruction, "reconstruction");
+	if (!headerOnly) {
+
+		registerInput(_groundTruthIdMap, "ground truth");
+		registerInput(_reconstruction, "reconstruction");
+	}
 
 	if (optionReportVoi) {
 
@@ -76,6 +79,10 @@ ErrorReport::ErrorReport(bool headerOnly) :
 		registerOutput(_reportAssembler->getOutput("error report"), "error report");
 		registerOutput(_reportAssembler->getOutput("human readable error report"), "human readable error report");
 		registerOutput(_ted->getOutput("corrected reconstruction"), "ted corrected reconstruction");
+
+	} else {
+
+		_pipelineSetup = true;
 	}
 }
 

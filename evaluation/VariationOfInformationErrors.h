@@ -46,6 +46,7 @@ public:
 	std::string errorString() {
 
 		std::stringstream ss;
+		ss << std::scientific << std::setprecision(5);
 		ss << getSplitEntropy() << "\t" << getMergeEntropy() << "\t" << getEntropy();
 
 		return ss.str();

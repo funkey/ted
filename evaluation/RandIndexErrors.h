@@ -22,6 +22,7 @@ public:
 	std::string errorString() {
 
 		std::stringstream ss;
+		ss << std::scientific << std::setprecision(5);
 		ss << getRandIndex();
 
 		return ss.str();
