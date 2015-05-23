@@ -22,11 +22,12 @@ public:
 	/**
 	 * Add a ground truth - reconstruction mapping with the given m1 score.
 	 */
-	void addMatch(pair_t p, float m1, float m2) {
+	void addMatch(pair_t p, float m1, float m2, float dice) {
 
 		_matches.insert(p);
 		_m1[p] = m1;
 		_m2[p] = m2;
+		_dice[p] = dice;
 	}
 
 	const std::set<float>& getFalsePositives() const {
@@ -78,6 +79,11 @@ public:
 		return _m2.at(p);
 	}
 
+	float getDice(pair_t p) const {
+
+		return _dice.at(p);
+	}
+
 	float getMeanM1() const {
 
 		float sum = 0;
@@ -118,13 +124,33 @@ public:
 		return sqrt(sum/_matches.size());
 	}
 
+	float getMeanDice() const {
+
+		float sum = 0;
+		foreach (const pair_t& p, _matches)
+			sum += getDice(p);
+
+		return sum/_matches.size();
+	}
+
+	float getStdDevDice() const {
+
+		float mean = getMeanDice();
+
+		float sum = 0;
+		foreach (const pair_t& p, _matches)
+			sum += pow(mean - getDice(p), 2.0);
+
+		return sqrt(sum/_matches.size());
+	}
+
 	void clear() {
 
 		_fps.clear();
 		_fns.clear();
 	}
 
-	std::string errorHeader() { return "DO_FP\tDO_FN\tDO_PRE\tDO_REC\tDO_FS\tDO_MEAN_M1\tDO_STD_M1\tDO_MEAN_M2\tDO_STD_M2"; }
+	std::string errorHeader() { return "DO_FP\tDO_FN\tDO_PRE\tDO_REC\tDO_FS\tDO_MEAN_M1\tDO_STD_M1\tDO_MEAN_M2\tDO_STD_M2\tDO_MEAN_DICE\tDO_STD_DICE"; }
 
 	std::string errorString() {
 
@@ -138,7 +164,9 @@ public:
 		ss << getMeanM1() << "\t";
 		ss << getStdDevM1() << "\t";
 		ss << getMeanM2() << "\t";
-		ss << getStdDevM2();
+		ss << getStdDevM2() << "\t";
+		ss << getMeanDice() << "\t";
+		ss << getStdDevDice();
 
 		return ss.str();
 	}
@@ -155,6 +183,8 @@ public:
 		ss << "DO_STD_M1: "  << getStdDevM1() << ", ";
 		ss << "DO_MEAN_M2: " << getMeanM2() << ", ";
 		ss << "DO_STD_M2: "  << getStdDevM2();
+		ss << "DO_MEAN_DICE: " << getMeanDice() << ", ";
+		ss << "DO_STD_DICE: "  << getStdDevDice();
 
 		return ss.str();
 	}
@@ -167,6 +197,7 @@ private:
 
 	std::map<pair_t, float> _m1;
 	std::map<pair_t, float> _m2;
+	std::map<pair_t, float> _dice;
 };
 
 #endif // TED_DETECTION_OVERLAP_ERRORS_H__

@@ -214,13 +214,14 @@ DetectionOverlap::updateOutputs() {
 
 		float m1 = (cap/cup)*100;
 		float m2 = (cap/gtSizes[p.first])*100;
+		float dice = 2.0*cap/(gtSizes[p.first] + recSizes[p.second]);
 
 		LOG_ALL(detectionoverlaplog)
 				<< "adding match with M1 = " << m1
 				<< ", M2 = " << m2
 				<< std::endl;
 
-		_errors->addMatch(p, m1, m2);
+		_errors->addMatch(p, m1, m2, dice);
 	}
 }
 
