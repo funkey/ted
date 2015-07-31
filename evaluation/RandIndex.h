@@ -22,7 +22,13 @@ private:
 
 	void updateOutputs();
 
-	size_t getNumAgreeingPairs(const ImageStack& stack1, const ImageStack& stack2, size_t& numLocations);
+	size_t getNumAgreeingPairs(
+			const ImageStack& stack1,
+			const ImageStack& stack2,
+			size_t& numLocations,
+			size_t& numSameComponentPairs1,
+			size_t& numSameComponentPairs2,
+			size_t& numSameComponentPairs12);
 
 	// input image stacks
 	pipeline::Input<ImageStack> _stack1;

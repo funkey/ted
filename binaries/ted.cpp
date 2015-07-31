@@ -64,7 +64,7 @@ int main(int optionc, char** optionv) {
 		// setup error report
 
 		pipeline::Process<ErrorReport> report(optionPlotFileHeader.as<bool>());
-		pipeline::Process<TolerantEditDistanceErrorsWriter> errorsWriter;
+		//pipeline::Process<TolerantEditDistanceErrorsWriter> errorsWriter;
 
 		if (!optionPlotFileHeader) {
 
@@ -88,9 +88,9 @@ int main(int optionc, char** optionv) {
 				report->setInput("ground truth", groundTruthReader->getOutput());
 			}
 
-			errorsWriter->setInput("ground truth", groundTruthReader->getOutput());
-			errorsWriter->setInput("reconstruction", reconstructionReader->getOutput());
-			errorsWriter->setInput("ted errors", report->getOutput("ted errors"));
+			//errorsWriter->setInput("ground truth", groundTruthReader->getOutput());
+			//errorsWriter->setInput("reconstruction", reconstructionReader->getOutput());
+			//errorsWriter->setInput("ted errors", report->getOutput("ted errors"));
 		}
 
 		// save results
@@ -113,8 +113,8 @@ int main(int optionc, char** optionv) {
 		//fpWriter->write();
 		//fnWriter->write();
 
-		if (optionSaveErrors && !optionPlotFileHeader)
-			errorsWriter->write("errors");
+		//if (optionSaveErrors && !optionPlotFileHeader)
+			//errorsWriter->write("errors");
 
 		if (optionPlotFileHeader) {
 

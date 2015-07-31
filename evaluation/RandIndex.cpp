@@ -58,18 +58,37 @@ RandIndex::updateOutputs() {
 		return;
 	}
 
-	double numAgree = getNumAgreeingPairs(*_stack1, *_stack2, numLocations);
+	size_t numGtSamePairs   = 0;
+	size_t numRecSamePairs  = 0;
+	size_t numBothSamePairs = 0;
+
+	double numAgree = getNumAgreeingPairs(*_stack1, *_stack2, numLocations, numGtSamePairs, numRecSamePairs, numBothSamePairs);
 	double numPairs = (static_cast<double>(numLocations)/2)*(static_cast<double>(numLocations) - 1);
 
 	LOG_DEBUG(randindexlog) << "number of pairs is          " << numPairs << std::endl;;
 	LOG_DEBUG(randindexlog) << "number of agreeing pairs is " << numAgree << std::endl;;
+
+	double precision = (double)numBothSamePairs/numRecSamePairs;
+	double recall    = (double)numBothSamePairs/numGtSamePairs;
+	double fscore    = 2*(precision*recall)/(precision + recall);
+
+	LOG_DEBUG(randindexlog) << "number of TPs is    " << numBothSamePairs << std::endl;
+	LOG_DEBUG(randindexlog) << "number of TPs + FNs " << numGtSamePairs << std::endl;
+	LOG_DEBUG(randindexlog) << "number of TPs + FPs " << numRecSamePairs << std::endl;
+	LOG_DEBUG(randindexlog) << "1 - F-score is      " << (1.0 - fscore) << std::endl;
 
 	_errors->setNumPairs(numPairs);
 	_errors->setNumAggreeingPairs(numAgree);
 }
 
 size_t
-RandIndex::getNumAgreeingPairs(const ImageStack& stack1, const ImageStack& stack2, size_t& numLocations) {
+RandIndex::getNumAgreeingPairs(
+		const ImageStack& stack1,
+		const ImageStack& stack2,
+		size_t& numLocations,
+		size_t& numSameComponentPairs1,
+		size_t& numSameComponentPairs2,
+		size_t& numSameComponentPairs12) {
 
 	// Implementation following algorith by Bjoern Andres:
 	//
@@ -114,16 +133,27 @@ RandIndex::getNumAgreeingPairs(const ImageStack& stack1, const ImageStack& stack
 	size_t A = 0;
 	size_t B = numLocations*numLocations;
 
+	numSameComponentPairs1 = 0;
+	numSameComponentPairs2 = 0;
+
 	foreach (boost::tie(labelPair, n), c) {
 
 		A += n*(n-1);
 		B += n*n;
+		numSameComponentPairs12 += n*n;
 	}
 
-	foreach (boost::tie(label, n), a)
+	foreach (boost::tie(label, n), a) {
+
 		B -= n*n;
-	foreach (boost::tie(label, n), b)
+		numSameComponentPairs1 += n*n;
+	}
+
+	foreach (boost::tie(label, n), b) {
+
 		B -= n*n;
+		numSameComponentPairs2 += n*n;
+	}
 
 	return (A+B)/2;
 }
