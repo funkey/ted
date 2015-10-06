@@ -140,7 +140,11 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 
 		cell_t& cell = (*_cells)[index];
 
-		LOG_ALL(distancetolerancelog) << "processing cell " << index << " (label " << cell.getReconstructionLabel() << ")" << std::flush;
+		LOG_ALL(distancetolerancelog)
+				<< "processing cell " << index
+				<< " (rec label " << cell.getReconstructionLabel() << ")"
+				<< " (gt label " << cell.getGroundTruthLabel() << ")"
+				<< std::endl;
 
 		std::set<float> alternativeLabels = getAlternativeLabels(cell, neighborhood, recLabels);
 
@@ -150,10 +154,10 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 		// different label, which is the case when there is at least one 
 		// alternative)
 		if (_haveBackgroundLabel)
-			if (alternativeLabels.size() > 0)
+			if (alternativeLabels.size() > 0 && cell.getReconstructionLabel() != _backgroundLabel)
 				alternativeLabels.insert(_backgroundLabel);
 
-		LOG_ALL(distancetolerancelog) << "; can map to ";
+		LOG_ALL(distancetolerancelog) << "\tcan map to ";
 
 		// for each alternative label
 		foreach (float recLabel, alternativeLabels) {
