@@ -3,6 +3,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <imageprocessing/io/ImageStackDirectoryReader.h>
 #include <imageprocessing/io/ImageStackDirectoryWriter.h>
 #include <pipeline/Process.h>
@@ -30,10 +31,6 @@ util::ProgramOption optionReconstruction(
 		util::_description_text = "The reconstruction image stack.",
 		util::_default_value    = "reconstruction");
 
-util::ProgramOption optionSaveErrors(
-		util::_long_name        = "saveErrors",
-		util::_description_text = "Create an image stack for every split and merge error. Be careful, this can result in a lot of data.");
-
 util::ProgramOption optionPlotFileRow(
 		util::_long_name        = "plotFileRow",
 		util::_description_text = "Create a tab-separated single-line error report, which can be used as a row in a plot file.");
@@ -41,6 +38,12 @@ util::ProgramOption optionPlotFileRow(
 util::ProgramOption optionPlotFileHeader(
 		util::_long_name        = "plotFileHeader",
 		util::_description_text = "Instead of computing the errors, print a single-line column description for the plot file row, which can be used as a header in a plot file.");
+
+util::ProgramOption optionTedErrorFiles(
+		util::_long_name        = "tedErrorFiles",
+		util::_description_text = "Create files splits.dat and merges.dat (with background label als fps.dat and fns.dat) which report wich "
+		                          "label got split/merged into which.");
+
 
 int main(int optionc, char** optionv) {
 
@@ -95,26 +98,41 @@ int main(int optionc, char** optionv) {
 
 		// save results
 
-		//pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
-		//pipeline::Process<ImageStackDirectoryWriter> splitsWriter("splits");
-		//pipeline::Process<ImageStackDirectoryWriter> mergesWriter("merges");
-		//pipeline::Process<ImageStackDirectoryWriter> fpWriter("false_positives");
-		//pipeline::Process<ImageStackDirectoryWriter> fnWriter("false_negatives");
+		// corrected reconstruction
+		pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
+		correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
+		correctedWriter->write();
 
-		//correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
-		//splitsWriter->setInput(editDistance->getOutput("splits"));
-		//mergesWriter->setInput(editDistance->getOutput("merges"));
-		//fpWriter->setInput(editDistance->getOutput("false positives"));
-		//fnWriter->setInput(editDistance->getOutput("false negatives"));
+		if (optionTedErrorFiles) {
 
-		//correctedWriter->write();
-		//splitsWriter->write();
-		//mergesWriter->write();
-		//fpWriter->write();
-		//fnWriter->write();
+			// list of split, merge, fp, and fn errors
+			pipeline::Value<TolerantEditDistanceErrors> errors = report->getOutput("ted errors");
 
-		//if (optionSaveErrors && !optionPlotFileHeader)
-			//errorsWriter->write("errors");
+			std::ofstream splitFile("splits.dat");
+			foreach (float gtLabel, errors->getSplitLabels()) {
+				splitFile << gtLabel << "\t";
+				foreach (float recLabel, errors->getSplits(gtLabel))
+					splitFile << recLabel << "\t";
+				splitFile << std::endl;
+			}
+			std::ofstream mergeFile("merges.dat");
+			foreach (float recLabel, errors->getMergeLabels()) {
+				mergeFile << recLabel << "\t";
+				foreach (float gtLabel, errors->getMerges(recLabel))
+					mergeFile << gtLabel << "\t";
+				mergeFile << std::endl;
+			}
+
+			if (errors->hasBackgroundLabel()) {
+
+				std::ofstream fpFile("fps.dat");
+				foreach (float recLabel, errors->getFalsePositives())
+					fpFile << recLabel << std::endl;
+				std::ofstream fnFile("fns.dat");
+				foreach (float gtLabel, errors->getFalseNegatives())
+					fnFile << gtLabel << std::endl;
+			}
+		}
 
 		if (optionPlotFileHeader) {
 

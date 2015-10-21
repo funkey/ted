@@ -114,6 +114,18 @@ public:
 	std::set<float> getMerges(float recLabel);
 
 	/**
+	 * Get all reconstruction labels that have no corresponding ground truth 
+	 * label (i.e., map to the ground truth background).
+	 */
+	std::set<float> getFalsePositives();
+
+	/**
+	 * Get all ground truth labels that have no corresponding reconstruction 
+	 * label (i.e., map to the reconstruction background).
+	 */
+	std::set<float> getFalseNegatives();
+
+	/**
 	 * Get all cells that split the given ground truth label.
 	 */
 	const cell_map_t::mapped_type& getSplitCells(float gtLabel);
@@ -132,6 +144,13 @@ public:
 	 * Get all cells that are false negatives.
 	 */
 	const cell_map_t::mapped_type& getFalseNegativeCells();
+
+	/**
+	 * Check whether a background label was considered for the TED errors. If 
+	 * yes, some of the split and merge errors have an interpretation as false 
+	 * positives and false negatives.
+	 */
+	bool hasBackgroundLabel() const { return _haveBackgroundLabel; }
 
 	std::string errorHeader() { return "TED_FP\tTED_FN\tTED_FS\tTED_FM\tTED_SUM"; }
 

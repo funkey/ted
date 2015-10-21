@@ -171,6 +171,38 @@ TolerantEditDistanceErrors::getMerges(float recLabel) {
 	return mergeLabels;
 }
 
+std::set<float>
+TolerantEditDistanceErrors::getFalsePositives() {
+
+	if (!_haveBackgroundLabel)
+		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't have a background label -- cannot give false positives"));
+
+	std::set<float> splitLabels;
+
+	typedef cell_map_t::mapped_type::value_type cells_t;
+	foreach (const cells_t& cells, getSplitCells(_gtBackgroundLabel))
+		if (cells.first != _recBackgroundLabel)
+			splitLabels.insert(cells.first);
+
+	return splitLabels;
+}
+
+std::set<float>
+TolerantEditDistanceErrors::getFalseNegatives() {
+
+	if (!_haveBackgroundLabel)
+		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't have a background label -- cannot give false negatives"));
+
+	std::set<float> mergeLabels;
+
+	typedef cell_map_t::mapped_type::value_type cells_t;
+	foreach (const cells_t& cells, getMergeCells(_recBackgroundLabel))
+		if (cells.first != _gtBackgroundLabel)
+			mergeLabels.insert(cells.first);
+
+	return mergeLabels;
+}
+
 const TolerantEditDistanceErrors::cell_map_t::mapped_type&
 TolerantEditDistanceErrors::getSplitCells(float gtLabel) {
 
@@ -189,7 +221,7 @@ const TolerantEditDistanceErrors::cell_map_t::mapped_type&
 TolerantEditDistanceErrors::getFalsePositiveCells() {
 
 	if (!_haveBackgroundLabel)
-		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't hav a background label -- cannot give false positives"));
+		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't have a background label -- cannot give false positives"));
 
 	updateErrorCounts();
 	return _splits[_gtBackgroundLabel];
@@ -199,7 +231,7 @@ const TolerantEditDistanceErrors::cell_map_t::mapped_type&
 TolerantEditDistanceErrors::getFalseNegativeCells() {
 
 	if (!_haveBackgroundLabel)
-		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't hav a background label -- cannot give false negatives"));
+		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't have a background label -- cannot give false negatives"));
 
 	updateErrorCounts();
 	return _merges[_recBackgroundLabel];

@@ -123,6 +123,12 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 	_maxDistanceThresholdY = std::min((float)_height, _maxDistanceThreshold/_resolutionY);
 	_maxDistanceThresholdZ = std::min((float)_depth,  _maxDistanceThreshold/_resolutionZ);
 
+	LOG_DEBUG(distancetolerancelog)
+			<< "distance thresholds in pixels (x, y, z) are ("
+			<< _maxDistanceThresholdX << ", "
+			<< _maxDistanceThresholdY << ", "
+			<< _maxDistanceThresholdZ << ")" << std::endl;
+
 	LOG_DEBUG(distancetolerancelog) << "there are " << _relabelCandidates.size() << " cells that can be relabeled" << std::endl;
 
 	if (_relabelCandidates.size() == 0)
@@ -136,7 +142,14 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 	LOG_DEBUG(distancetolerancelog) << "there are " << neighborhood.size() << " pixels in the neighborhood for a threshold of " << _maxDistanceThreshold << std::endl;
 
 	// for each cell
+	int i = 0;
 	foreach (unsigned int index, _relabelCandidates) {
+
+		i++;
+		LOG_DEBUG(distancetolerancelog)
+				<< logger::delline << "processing cell "
+				<< i << "/" << _relabelCandidates.size()
+				<< std::flush;
 
 		cell_t& cell = (*_cells)[index];
 
@@ -169,10 +182,9 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 			registerPossibleMatch(cell.getGroundTruthLabel(), recLabel);
 		}
 		LOG_ALL(distancetolerancelog) << std::endl;
-
-		// DEBUG
-		index++;
 	}
+
+	LOG_DEBUG(distancetolerancelog) << std::endl;
 }
 
 bool
