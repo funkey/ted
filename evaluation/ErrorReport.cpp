@@ -78,7 +78,9 @@ ErrorReport::ErrorReport(bool headerOnly) :
 
 		registerOutput(_reportAssembler->getOutput("error report"), "error report");
 		registerOutput(_reportAssembler->getOutput("human readable error report"), "human readable error report");
-		registerOutput(_ted->getOutput("corrected reconstruction"), "ted corrected reconstruction");
+
+		if (optionReportTed)
+			registerOutput(_ted->getOutput("corrected reconstruction"), "ted corrected reconstruction");
 
 	} else {
 

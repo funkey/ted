@@ -97,10 +97,17 @@ int main(int optionc, char** optionv) {
 			report->setInput("ground truth", groundTruthReader->getOutput());
 		}
 
-		// save corrected reconstruction
-		pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
-		correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
-		correctedWriter->write();
+		try {
+
+			// save corrected reconstruction
+			pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
+			correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
+			correctedWriter->write();
+
+		} catch (pipeline::ProcessNode::NoSuchOutput& e) {
+
+			// well, we tried...
+		}
 
 		// write error report
 		pipeline::Value<std::string> reportText = report->getOutput("human readable error report");
