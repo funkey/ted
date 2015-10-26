@@ -31,13 +31,13 @@ util::ProgramOption optionReconstruction(
 		util::_description_text = "The reconstruction image stack.",
 		util::_default_value    = "reconstruction");
 
-util::ProgramOption optionPlotFileRow(
-		util::_long_name        = "plotFileRow",
-		util::_description_text = "Create a tab-separated single-line error report, which can be used as a row in a plot file.");
+util::ProgramOption optionPlotFile(
+		util::_long_name        = "plotFile",
+		util::_description_text = "Append a tab-separated single-line error report to the given file.");
 
 util::ProgramOption optionPlotFileHeader(
 		util::_long_name        = "plotFileHeader",
-		util::_description_text = "Instead of computing the errors, print a single-line column description for the plot file row, which can be used as a header in a plot file.");
+		util::_description_text = "Instead of computing the errors, print a single-line header in the plot file.");
 
 util::ProgramOption optionTedErrorFiles(
 		util::_long_name        = "tedErrorFiles",
@@ -67,41 +67,44 @@ int main(int optionc, char** optionv) {
 		// setup error report
 
 		pipeline::Process<ErrorReport> report(optionPlotFileHeader.as<bool>());
-		//pipeline::Process<TolerantEditDistanceErrorsWriter> errorsWriter;
 
-		if (!optionPlotFileHeader) {
+		if (optionPlotFileHeader) {
 
-			// setup file readers and writers
+			std::ofstream f(optionPlotFile.as<std::string>(), std::ofstream::app);
+			pipeline::Value<std::string> reportText = report->getOutput("error report header");
 
-			pipeline::Process<ImageStackDirectoryReader> groundTruthReader(optionGroundTruth.as<std::string>());
-			pipeline::Process<ImageStackDirectoryReader> reconstructionReader(optionReconstruction.as<std::string>());
-
-			report->setInput("reconstruction", reconstructionReader->getOutput());
-
-			if (optionExtractGroundTruthLabels) {
-
-				LOG_DEBUG(out) << "[main] extracting ground truth labels from connected components" << std::endl;
-
-				pipeline::Process<ExtractGroundTruthLabels> extractLabels;
-				extractLabels->setInput(groundTruthReader->getOutput());
-				report->setInput("ground truth", extractLabels->getOutput());
-
-			} else {
-
-				report->setInput("ground truth", groundTruthReader->getOutput());
-			}
-
-			//errorsWriter->setInput("ground truth", groundTruthReader->getOutput());
-			//errorsWriter->setInput("reconstruction", reconstructionReader->getOutput());
-			//errorsWriter->setInput("ted errors", report->getOutput("ted errors"));
+			f << *reportText << std::endl;
+			return 0;
 		}
 
-		// save results
+		// setup file readers and writers
 
-		// corrected reconstruction
+		pipeline::Process<ImageStackDirectoryReader> groundTruthReader(optionGroundTruth.as<std::string>());
+		pipeline::Process<ImageStackDirectoryReader> reconstructionReader(optionReconstruction.as<std::string>());
+
+		report->setInput("reconstruction", reconstructionReader->getOutput());
+
+		if (optionExtractGroundTruthLabels) {
+
+			LOG_DEBUG(out) << "[main] extracting ground truth labels from connected components" << std::endl;
+
+			pipeline::Process<ExtractGroundTruthLabels> extractLabels;
+			extractLabels->setInput(groundTruthReader->getOutput());
+			report->setInput("ground truth", extractLabels->getOutput());
+
+		} else {
+
+			report->setInput("ground truth", groundTruthReader->getOutput());
+		}
+
+		// save corrected reconstruction
 		pipeline::Process<ImageStackDirectoryWriter> correctedWriter("corrected");
 		correctedWriter->setInput(report->getOutput("ted corrected reconstruction"));
 		correctedWriter->write();
+
+		// write error report
+		pipeline::Value<std::string> reportText = report->getOutput("human readable error report");
+		LOG_USER(out) << *reportText << std::endl;
 
 		if (optionTedErrorFiles) {
 
@@ -134,23 +137,13 @@ int main(int optionc, char** optionv) {
 			}
 		}
 
-		if (optionPlotFileHeader) {
+		if (optionPlotFile) {
 
-			pipeline::Value<std::string> reportText = report->getOutput("error report header");
-
-			LOG_USER(out) << *reportText << std::endl;
-
-		} else if (optionPlotFileRow) {
-
+			std::ofstream f(optionPlotFile.as<std::string>(), std::ofstream::app);
 			pipeline::Value<std::string> reportText = report->getOutput("error report");
 
-			LOG_USER(out) << *reportText << std::endl;
+			f << *reportText << std::endl;
 
-		} else {
-
-			pipeline::Value<std::string> reportText = report->getOutput("human readable error report");
-
-			LOG_USER(out) << *reportText << std::endl;
 		}
 
 	} catch (Exception& e) {
