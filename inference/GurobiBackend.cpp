@@ -112,6 +112,8 @@ GurobiBackend::initialize(
 			_variables[i].set(GRB_DoubleAttr_LB, -GRB_INFINITY);
 	}
 
+	LOG_DEBUG(gurobilog) << "setting special variable types" << std::endl;
+
 	// handle special variable types
 	unsigned int v;
 	VariableType type;
