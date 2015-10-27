@@ -127,11 +127,8 @@ GurobiBackend::initialize(
 
 			// remove bounds, which might have been set by the default variable 
 			// type being binary previously
-			for (unsigned int i = 0; i < _numVariables; i++) {
-
-				_variables[i].set(GRB_DoubleAttr_LB, -GRB_INFINITY);
-				_variables[i].set(GRB_DoubleAttr_UB,  GRB_INFINITY);
-			}
+			_variables[v].set(GRB_DoubleAttr_LB, -GRB_INFINITY);
+			_variables[v].set(GRB_DoubleAttr_UB,  GRB_INFINITY);
 		}
 	}
 
