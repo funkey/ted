@@ -119,9 +119,9 @@ DistanceToleranceFunction::createBoundaryDistanceMap() {
 void
 DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 
-	_maxDistanceThresholdX = std::min((float)_width,  _maxDistanceThreshold/_resolutionX);
-	_maxDistanceThresholdY = std::min((float)_height, _maxDistanceThreshold/_resolutionY);
-	_maxDistanceThresholdZ = std::min((float)_depth,  _maxDistanceThreshold/_resolutionZ);
+	_maxDistanceThresholdX = std::min(_width,  (unsigned int)round(_maxDistanceThreshold/_resolutionX));
+	_maxDistanceThresholdY = std::min(_height, (unsigned int)round(_maxDistanceThreshold/_resolutionY));
+	_maxDistanceThresholdZ = std::min(_depth,  (unsigned int)round(_maxDistanceThreshold/_resolutionZ));
 
 	LOG_DEBUG(distancetolerancelog)
 			<< "distance thresholds in pixels (x, y, z) are ("
