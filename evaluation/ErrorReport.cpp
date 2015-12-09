@@ -103,17 +103,17 @@ ErrorReport::updateOutputs() {
 		voiRandIdMapProvider = pipeline::Process<GrowSlices>();
 		voiRandIdMapProvider->setInput(_reconstruction);
 
-		_voi->setInput("stack 2", voiRandIdMapProvider->getOutput());
-		_rand->setInput("stack 2", voiRandIdMapProvider->getOutput());
+		_voi->setInput("reconstruction", voiRandIdMapProvider->getOutput());
+		_rand->setInput("reconstruction", voiRandIdMapProvider->getOutput());
 
 	} else {
 
-		_voi->setInput("stack 2", _reconstruction);
-		_rand->setInput("stack 2", _reconstruction);
+		_voi->setInput("reconstruction", _reconstruction);
+		_rand->setInput("reconstruction", _reconstruction);
 	}
 
-	_voi->setInput("stack 1", _groundTruthIdMap);
-	_rand->setInput("stack 1", _groundTruthIdMap);
+	_voi->setInput("ground truth", _groundTruthIdMap);
+	_rand->setInput("ground truth", _groundTruthIdMap);
 	_detectionOverlap->setInput("stack 1", _groundTruthIdMap);
 	_detectionOverlap->setInput("stack 2", _reconstruction);
 	_ted->setInput("ground truth", _groundTruthIdMap);

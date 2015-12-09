@@ -16,8 +16,8 @@ RandIndex::RandIndex(bool headerOnly) :
 
 	if (!_headerOnly) {
 
-		registerInput(_stack1, "stack 1");
-		registerInput(_stack2, "stack 2");
+		registerInput(_reconstruction, "reconstruction");
+		registerInput(_groundTruth, "ground truth");
 	}
 
 	registerOutput(_errors, "errors");
@@ -32,10 +32,10 @@ RandIndex::updateOutputs() {
 	if (_headerOnly)
 		return;
 
-	if (_stack1->size() != _stack2->size())
+	if (_reconstruction->size() != _groundTruth->size())
 		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
 
-	unsigned int depth = _stack1->size();
+	unsigned int depth = _reconstruction->size();
 
 	if (depth == 0) {
 
@@ -45,8 +45,8 @@ RandIndex::updateOutputs() {
 		return;
 	}
 
-	unsigned int width  = (*_stack1)[0]->width();
-	unsigned int height = (*_stack1)[0]->height();
+	unsigned int width  = (*_reconstruction)[0]->width();
+	unsigned int height = (*_reconstruction)[0]->height();
 
 	size_t numLocations = depth*width*height;
 
@@ -62,7 +62,7 @@ RandIndex::updateOutputs() {
 	size_t numRecSamePairs  = 0;
 	size_t numBothSamePairs = 0;
 
-	double numAgree = getNumAgreeingPairs(*_stack1, *_stack2, numLocations, numGtSamePairs, numRecSamePairs, numBothSamePairs);
+	double numAgree = getNumAgreeingPairs(*_reconstruction, *_groundTruth, numLocations, numGtSamePairs, numRecSamePairs, numBothSamePairs);
 	double numPairs = (static_cast<double>(numLocations)/2)*(static_cast<double>(numLocations) - 1);
 
 	LOG_DEBUG(randindexlog) << "number of pairs is          " << numPairs << std::endl;;
@@ -114,7 +114,7 @@ RandIndex::getNumAgreeingPairs(
 
 		for (; i1 != (*image1)->end(); i1++, i2++) {
 
-			if (_ignoreBackground && (*i1 == 0 || *i2 == 0)) {
+			if (_ignoreBackground && *i2 == 0) {
 
 				numLocations--;
 				continue;

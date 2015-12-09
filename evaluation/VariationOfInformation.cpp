@@ -16,8 +16,8 @@ VariationOfInformation::VariationOfInformation(bool headerOnly) :
 
 	if (!_headerOnly) {
 
-		registerInput(_stack1, "stack 1");
-		registerInput(_stack2, "stack 2");
+		registerInput(_reconstruction, "reconstruction");
+		registerInput(_groundTruth, "ground truth");
 	}
 
 	registerOutput(_errors, "errors");
@@ -33,7 +33,7 @@ VariationOfInformation::updateOutputs() {
 	if (_headerOnly)
 		return;
 
-	if (_stack1->size() != _stack2->size())
+	if (_reconstruction->size() != _groundTruth->size())
 		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
 
 	// count label occurences
@@ -42,12 +42,12 @@ VariationOfInformation::updateOutputs() {
 	_p2.clear();
 	_p12.clear();
 
-	ImageStack::const_iterator i1  = _stack1->begin();
-	ImageStack::const_iterator i2  = _stack2->begin();
+	ImageStack::const_iterator i1  = _reconstruction->begin();
+	ImageStack::const_iterator i2  = _groundTruth->begin();
 
 	unsigned int n = 0;
 
-	for (; i1 != _stack1->end(); i1++, i2++) {
+	for (; i1 != _reconstruction->end(); i1++, i2++) {
 
 		if ((*i1)->size() != (*i2)->size())
 			BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("images have different size") << STACK_TRACE);
@@ -59,7 +59,7 @@ VariationOfInformation::updateOutputs() {
 
 		for (; j1 != (*i1)->end(); j1++, j2++) {
 
-			if (_ignoreBackground && (*j1 == 0 || *j2 == 0)) {
+			if (_ignoreBackground && *j2 == 0) {
 
 				n--;
 				continue;

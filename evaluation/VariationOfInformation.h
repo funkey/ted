@@ -26,8 +26,8 @@ private:
 	void updateOutputs();
 
 	// input image stacks
-	pipeline::Input<ImageStack> _stack1;
-	pipeline::Input<ImageStack> _stack2;
+	pipeline::Input<ImageStack> _reconstruction;
+	pipeline::Input<ImageStack> _groundTruth;
 
 	pipeline::Output<VariationOfInformationErrors> _errors;
 
