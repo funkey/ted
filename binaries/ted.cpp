@@ -13,6 +13,7 @@
 #include <evaluation/TolerantEditDistanceErrorsWriter.h>
 #include <util/ProgramOptions.h>
 #include <util/Logger.h>
+#include <vigra/hdf5impex.hxx>
 
 using namespace logger;
 
@@ -44,6 +45,49 @@ util::ProgramOption optionTedErrorFiles(
 		util::_description_text = "Create files splits.dat and merges.dat (with background label als fps.dat and fns.dat) which report wich "
 		                          "label got split/merged into which.");
 
+void readImageStackFromOption(ImageStack& stack, std::string option) {
+
+	// hdf file given?
+	size_t sepPos = option.find_first_of(":");
+	if (sepPos != std::string::npos) {
+
+		std::string hdfFileName = option.substr(0, sepPos);
+		std::string dataset     = option.substr(sepPos + 1);
+
+		vigra::HDF5File file(hdfFileName, vigra::HDF5File::OpenMode::ReadOnly);
+
+		vigra::MultiArray<3, float> volume;
+		file.readAndResize(dataset, volume);
+
+		stack.clear();
+		for (int z = 0; z < volume.size(2); z++) {
+			boost::shared_ptr<Image> image = boost::make_shared<Image>(volume.size(0), volume.size(1));
+			vigra::MultiArrayView<2, float> imageView = *image;
+			imageView = volume.bind<2>(z);
+			stack.add(image);
+		}
+
+		vigra::MultiArray<1, float> p(3);
+
+		if (file.existsAttribute(dataset, "resolution")) {
+
+			// resolution
+			file.readAttribute(
+					dataset,
+					"resolution",
+					p);
+			stack.setResolution(p[0], p[1], p[2]);
+		}
+
+	// read stack from directory of images
+	} else {
+
+		pipeline::Process<ImageStackDirectoryReader> stackReader(option);
+
+		pipeline::Value<ImageStack> output = stackReader->getOutput();
+		stack = *output;
+	}
+}
 
 int main(int optionc, char** optionv) {
 
@@ -79,22 +123,25 @@ int main(int optionc, char** optionv) {
 
 		// setup file readers and writers
 
-		pipeline::Process<ImageStackDirectoryReader> groundTruthReader(optionGroundTruth.as<std::string>());
-		pipeline::Process<ImageStackDirectoryReader> reconstructionReader(optionReconstruction.as<std::string>());
+		pipeline::Value<ImageStack> groundTruth;
+		pipeline::Value<ImageStack> reconstruction;
 
-		report->setInput("reconstruction", reconstructionReader->getOutput());
+		readImageStackFromOption(*groundTruth, optionGroundTruth);
+		readImageStackFromOption(*reconstruction, optionReconstruction);
+
+		report->setInput("reconstruction", reconstruction);
 
 		if (optionExtractGroundTruthLabels) {
 
 			LOG_DEBUG(out) << "[main] extracting ground truth labels from connected components" << std::endl;
 
 			pipeline::Process<ExtractGroundTruthLabels> extractLabels;
-			extractLabels->setInput(groundTruthReader->getOutput());
+			extractLabels->setInput(groundTruth);
 			report->setInput("ground truth", extractLabels->getOutput());
 
 		} else {
 
-			report->setInput("ground truth", groundTruthReader->getOutput());
+			report->setInput("ground truth", groundTruth);
 		}
 
 		try {
