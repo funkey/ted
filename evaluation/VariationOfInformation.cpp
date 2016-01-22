@@ -109,14 +109,19 @@ VariationOfInformation::updateOutputs() {
 	// H(stack 1, stack2)
 	double H12 = H1 + H2 - I;
 
-	// We compare stack1 to stack2. Thus, the split entropy represents the 
-	// number of splits from stack1 to stack2, and the merge entropy the number 
-	// of merges from stack1 to stack2.
+	// We compare stack1 (reconstruction) to stack2 (groundtruth). Thus, the 
+	// split entropy represents the number of splits of regions in stack2 in 
+	// stack1, and the merge entropy the number of merges of regions in stack2 
+	// in stack1.
 	//
-	// H(stack 2|stack 1) = H(stack 1, stack 2) - H(stack 1)
-	_errors->setSplitEntropy(H12 - H1);
 	// H(stack 1|stack 2) = H(stack 1, stack 2) - H(stack 2)
-	_errors->setMergeEntropy(H12 - H2);
+	//   (i.e., if I know the ground truth label, how much bits do I need to 
+	//   infer the reconstructino label?)
+	_errors->setSplitEntropy(H12 - H2);
+	// H(stack 2|stack 1) = H(stack 1, stack 2) - H(stack 1)
+	//   (i.e., if I know the reconstruction label, how much bits do I need to 
+	//   infer the groundtruth label?)
+	_errors->setMergeEntropy(H12 - H1);
 
 	LOG_DEBUG(variationofinformationlog)
 			<< "sum of conditional entropies is " << _errors->getEntropy()
