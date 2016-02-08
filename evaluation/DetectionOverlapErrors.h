@@ -182,7 +182,7 @@ public:
 		ss << "DO_MEAN_M1: " << getMeanM1() << ", ";
 		ss << "DO_STD_M1: "  << getStdDevM1() << ", ";
 		ss << "DO_MEAN_M2: " << getMeanM2() << ", ";
-		ss << "DO_STD_M2: "  << getStdDevM2();
+		ss << "DO_STD_M2: "  << getStdDevM2() << ", ";
 		ss << "DO_MEAN_DICE: " << getMeanDice() << ", ";
 		ss << "DO_STD_DICE: "  << getStdDevDice();
 
