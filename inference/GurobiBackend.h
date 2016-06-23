@@ -5,16 +5,18 @@
 
 #include <string>
 
-#include <gurobi_c++.h>
+extern "C" {
+#include <gurobi_c.h>
+}
 
 #include "LinearConstraints.h"
-#include "LinearSolverParameters.h"
 #include "QuadraticObjective.h"
 #include "QuadraticSolverBackend.h"
 #include "Sense.h"
 #include "Solution.h"
+#include <util/exceptions.h>
 
-using namespace std;
+class GurobiException : public Exception {};
 
 /**
  * Gurobi interface to solve the following (integer) quadratic program:
@@ -56,29 +58,13 @@ public:
 
 	void setConstraints(const LinearConstraints& constraints);
 
-	/**
-	 * Force the value of a variable to be a given value, i.e., pin the variable 
-	 * to a fixed value.
-	 *
-	 * @param varNum
-	 *              The number of the variable to pin.
-	 *
-	 * @param value
-	 *              The value the variable has to assume.
-	 */
-	void pinVariable(unsigned int varNum, double value);
-
-	/**
-	 * Remove a previous pin from a variable.
-	 *
-	 * @param varNum
-	 *              The number of the variable to unpin.
-	 *
-	 * @return True, if the variable was pinned before.
-	 */
-	bool unpinVariable(unsigned int varNum);
+	void addConstraint(const LinearConstraint& constraint);
 
 	bool solve(Solution& solution, double& value, std::string& message);
+
+	void pinVariable(unsigned int varNum, double value) { UTIL_THROW_EXCEPTION(GurobiException, "not yet implemented"); }
+
+	bool unpinVariable(unsigned int varNum) { UTIL_THROW_EXCEPTION(GurobiException, "not yet implemented"); }
 
 private:
 
@@ -95,47 +81,32 @@ private:
 	// set the mpi focus
 	void setMIPFocus(unsigned int focus);
 
+	// set a timeout
+	void setTimeout(double timeout);
+
 	// set the number of threads to use
 	void setNumThreads(unsigned int numThreads);
 
-	/**
-	 * Enable solver output.
-	 */
+	// enable solver output
 	void setVerbose(bool verbose);
+
+	// check error status and throw exception, used by our macro GRB_CHECK
+	void grbCheck(const char* call, const char* file, int line, int error);
 
 	// size of a and x
 	unsigned int _numVariables;
 
-	// rows in A
-	unsigned int _numEqConstraints;
-
-	// rows in C
-	unsigned int _numIneqConstraints;
+	// number of rows in A and C
+	unsigned int _numConstraints;
 
 	// the GRB environment
-	GRBEnv _env;
-
-	// the (binary) variables x
-	GRBVar* _variables;
-
-	// the objective
-	GRBQuadExpr _objective;
-
-	// all constraints set via setConstraints()
-	std::vector<GRBConstr> _constraints;
+	GRBenv* _env;
 
 	// the GRB model containing the objective and constraints
-	GRBModel _model;
-
-	// the verbosity of the output
-	int _verbosity;
-
-	// a value by which to scale the objective
-	double _scale;
+	GRBmodel* _model;
 };
 
 #endif // HAVE_GUROBI
 
 #endif // GUROBI_SOLVER_H__
-
 
