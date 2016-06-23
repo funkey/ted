@@ -27,6 +27,10 @@ util::ProgramOption optionExtractGroundTruthLabels(
 		util::_description_text = "Indicate that the ground truth consists of a foreground/background labeling "
 		                          "(dark/bright) and each 4-connected component of foreground represents one region.");
 
+util::ProgramOption optionExportGroundtruth(
+		util::_long_name        = "exportGroundTruth",
+		util::_description_text = "If extractGroundTruthLabels is set, use this option to export the labeled groundtruth.");
+
 util::ProgramOption optionReconstruction(
 		util::_long_name        = "reconstruction",
 		util::_description_text = "The reconstruction image stack.",
@@ -138,6 +142,13 @@ int main(int optionc, char** optionv) {
 			pipeline::Process<ExtractGroundTruthLabels> extractLabels;
 			extractLabels->setInput(groundTruth);
 			report->setInput("ground truth", extractLabels->getOutput());
+
+			if (optionExportGroundtruth) {
+
+				pipeline::Process<ImageStackDirectoryWriter> writer("groundtruth");
+				writer->setInput(extractLabels->getOutput());
+				writer->write();
+			}
 
 		} else {
 
