@@ -13,8 +13,8 @@ set(VERSION_MINOR 1)
 # compiler settings #
 #####################
 
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -Wall -Wextra -fomit-frame-pointer -std=c++0x")
-set(CMAKE_CXX_FLAGS_DEBUG   "-g -DDEBUG -Wall -Wextra -std=c++0x")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -fomit-frame-pointer -fPIC -std=c++11 -DWITH_BOOST_GRAPH")
+set(CMAKE_CXX_FLAGS_DEBUG   "-g -Wall -Wextra -fPIC -std=c++11 -DWITH_BOOST_GRAPH")
 if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Release or Debug" FORCE)
 endif()
@@ -30,6 +30,7 @@ add_subdirectory(modules)
 add_subdirectory(inference)
 add_subdirectory(evaluation)
 add_subdirectory(binaries)
+add_subdirectory(python)
 
 ###############
 # config file #

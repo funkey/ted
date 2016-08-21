@@ -21,7 +21,13 @@ public:
 	 *              information for the output "error report header" will be 
 	 *              fetched.
 	 */
-	ErrorReport(bool headerOnly = false);
+	ErrorReport(
+			bool headerOnly = false,
+			bool reportTed = true,
+			bool reportRand = false,
+			bool reportVoi = false,
+			bool reportDetectionOverlap = false
+			);
 
 private:
 

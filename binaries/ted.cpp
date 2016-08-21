@@ -49,6 +49,28 @@ util::ProgramOption optionTedErrorFiles(
 		util::_description_text = "Create files splits.dat and merges.dat (with background label als fps.dat and fns.dat) which report wich "
 		                          "label got split/merged into which.");
 
+util::ProgramOption optionReportVoi(
+		util::_module           = "evaluation",
+		util::_long_name        = "reportVoi",
+		util::_description_text = "Compute variation of information for the error report.");
+
+util::ProgramOption optionReportRand(
+		util::_module           = "evaluation",
+		util::_long_name        = "reportRand",
+		util::_description_text = "Compute the RAND index for the error report.");
+
+util::ProgramOption optionReportDetectionOverlap(
+		util::_module           = "evaluation",
+		util::_long_name        = "reportDetectionOverlap",
+		util::_description_text = "Compute the detection overlap for the error report.",
+		util::_default_value    = true);
+
+util::ProgramOption optionReportTed(
+		util::_module           = "evaluation",
+		util::_long_name        = "reportTed",
+		util::_description_text = "Compute the tolerant edit distance for the error report.",
+		util::_default_value    = true);
+
 void readImageStackFromOption(ImageStack& stack, std::string option) {
 
 	// hdf file given?
@@ -114,7 +136,12 @@ int main(int optionc, char** optionv) {
 
 		// setup error report
 
-		pipeline::Process<ErrorReport> report(optionPlotFileHeader.as<bool>());
+		pipeline::Process<ErrorReport> report(
+				optionPlotFileHeader.as<bool>(),
+				optionReportTed.as<bool>(),
+				optionReportRand.as<bool>(),
+				optionReportVoi.as<bool>(),
+				optionReportDetectionOverlap.as<bool>());
 
 		if (optionPlotFileHeader) {
 

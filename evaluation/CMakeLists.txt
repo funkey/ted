@@ -1,1 +1,1 @@
-define_module(evaluation OBJECT LINKS imageprocessing)
+define_module(evaluation OBJECT LINKS inference imageprocessing)

@@ -5,28 +5,6 @@
 #include <util/Logger.h>
 #include "ErrorReport.h"
 
-util::ProgramOption optionReportVoi(
-		util::_module           = "evaluation",
-		util::_long_name        = "reportVoi",
-		util::_description_text = "Compute variation of information for the error report.");
-
-util::ProgramOption optionReportRand(
-		util::_module           = "evaluation",
-		util::_long_name        = "reportRand",
-		util::_description_text = "Compute the RAND index for the error report.");
-
-util::ProgramOption optionReportDetectionOverlap(
-		util::_module           = "evaluation",
-		util::_long_name        = "reportDetectionOverlap",
-		util::_description_text = "Compute the detection overlap for the error report.",
-		util::_default_value    = true);
-
-util::ProgramOption optionReportTed(
-		util::_module           = "evaluation",
-		util::_long_name        = "reportTed",
-		util::_description_text = "Compute the tolerant edit distance for the error report.",
-		util::_default_value    = true);
-
 util::ProgramOption optionGrowSlices(
 		util::_module           = "evaluation",
 		util::_long_name        = "growSlices",
@@ -34,13 +12,18 @@ util::ProgramOption optionGrowSlices(
 
 logger::LogChannel errorreportlog("errorreportlog", "[ErrorReport] ");
 
-ErrorReport::ErrorReport(bool headerOnly) :
-		_voi(headerOnly),
-		_rand(headerOnly),
-		_detectionOverlap(headerOnly),
-		_ted(headerOnly),
-		_reportAssembler(headerOnly),
-		_pipelineSetup(false) {
+ErrorReport::ErrorReport(
+		bool headerOnly,
+		bool reportTed,
+		bool reportRand,
+		bool reportVoi,
+		bool reportDetectionOverlap) :
+	_voi(headerOnly),
+	_rand(headerOnly),
+	_detectionOverlap(headerOnly),
+	_ted(headerOnly),
+	_reportAssembler(headerOnly),
+	_pipelineSetup(false) {
 
 	if (!headerOnly) {
 
@@ -48,25 +31,25 @@ ErrorReport::ErrorReport(bool headerOnly) :
 		registerInput(_reconstruction, "reconstruction");
 	}
 
-	if (optionReportVoi) {
+	if (reportVoi) {
 
 		_reportAssembler->addInput("errors", _voi->getOutput("errors"));
 		registerOutput(_voi->getOutput("errors"), "voi errors");
 	}
 
-	if (optionReportRand) {
+	if (reportRand) {
 
 		_reportAssembler->addInput("errors", _rand->getOutput("errors"));
 		registerOutput(_rand->getOutput("errors"), "rand errors");
 	}
 
-	if (optionReportDetectionOverlap) {
+	if (reportDetectionOverlap) {
 
 		_reportAssembler->addInput("errors", _detectionOverlap->getOutput("errors"));
 		registerOutput(_detectionOverlap->getOutput("errors"), "detection overlap errors");
 	}
 
-	if (optionReportTed) {
+	if (reportTed) {
 
 		_reportAssembler->addInput("errors", _ted->getOutput("errors"));
 		registerOutput(_ted->getOutput("errors"), "ted errors");
@@ -79,7 +62,7 @@ ErrorReport::ErrorReport(bool headerOnly) :
 		registerOutput(_reportAssembler->getOutput("error report"), "error report");
 		registerOutput(_reportAssembler->getOutput("human readable error report"), "human readable error report");
 
-		if (optionReportTed)
+		if (reportTed)
 			registerOutput(_ted->getOutput("corrected reconstruction"), "ted corrected reconstruction");
 
 	} else {
