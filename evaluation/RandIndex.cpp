@@ -79,6 +79,7 @@ RandIndex::updateOutputs() {
 
 	_errors->setNumPairs(numPairs);
 	_errors->setNumAggreeingPairs(numAgree);
+	_errors->setAdaptedRandError(1.0 - fscore);
 }
 
 size_t

@@ -15,15 +15,19 @@ public:
 
 	void setNumAggreeingPairs(double numAggreeingPairs) { _numAgreeing = numAggreeingPairs; }
 
+	void setAdaptedRandError(double arand) { _arand = arand; }
+
 	double getRandIndex() { return _numAgreeing/_numPairs; }
 
-	std::string errorHeader() { return "RAND"; }
+	double getAdaptedRandError() { return _arand; }
+
+	std::string errorHeader() { return "RAND\tARAND"; }
 
 	std::string errorString() {
 
 		std::stringstream ss;
 		ss << std::scientific << std::setprecision(5);
-		ss << getRandIndex();
+		ss << getRandIndex() << "\t" << getAdaptedRandError();
 
 		return ss.str();
 	}
@@ -32,6 +36,7 @@ public:
 
 		std::stringstream ss;
 		ss << "RAND: " << getRandIndex();
+		ss << ", ARAND: " << getAdaptedRandError();
 
 		return ss.str();
 	}
@@ -40,6 +45,7 @@ private:
 
 	double _numPairs;
 	double _numAgreeing;
+	double _arand;
 };
 
 #endif // TED_EVALUATION_RAND_INDEX_ERRORS_H__
