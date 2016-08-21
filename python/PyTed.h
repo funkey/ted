@@ -5,6 +5,7 @@
 
 #include <util/Logger.h>
 #include <evaluation/ErrorReport.h>
+#include <git_sha1.h>
 
 logger::LogChannel pytedlog("pytedlog", "[Ted] ");
 
@@ -43,6 +44,7 @@ public:
 		summary["voi_merge"] = voiErrors->getMergeEntropy();
 		summary["rand_index"] = randErrors->getRandIndex();
 		summary["adapted_rand_error"] = randErrors->getAdaptedRandError();
+		summary["ted_version"] = std::string(__git_sha1);
 		return summary;
 	}
 
