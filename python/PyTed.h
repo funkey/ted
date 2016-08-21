@@ -42,6 +42,7 @@ public:
 		summary["voi_split"] = voiErrors->getSplitEntropy();
 		summary["voi_merge"] = voiErrors->getMergeEntropy();
 		summary["rand_index"] = randErrors->getRandIndex();
+		summary["adapted_rand_error"] = randErrors->getAdaptedRandError();
 		return summary;
 	}
 
