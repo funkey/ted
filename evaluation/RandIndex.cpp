@@ -63,6 +63,40 @@ RandIndex::updateOutputs() {
 	LOG_DEBUG(randindexlog) << "number of pairs is          " << numPairs << std::endl;;
 	LOG_DEBUG(randindexlog) << "number of agreeing pairs is " << numAgree << std::endl;;
 
+	/* The following implements the scores as described in 
+	 * http://journal.frontiersin.org/article/10.3389/fnana.2015.00142/full
+	 * "Crowdsourcing the creation of image segmentation algorithms for 
+	 * connectomics", Argenda-Carreras et. al., 2015
+	 *
+	 * In it, "rand split" is defined as the probability of two randomly chosen 
+	 * pixels having the same label in GT and REC, given they have the same 
+	 * label in GT.
+	 *
+	 *   • Here, we call that "recall". Suppose the "elements" we want to 
+	 *     discover are pairs of pixels (x,y) that have the same label. There 
+	 *     are numPairs pairs in total. "selected elements" are numRecSamePairs. 
+	 *     All "relevant elements" are numGtSamePairs. "true positives" are 
+	 *     numBothSamePairs, i.e., all pairs that are relevant and have been 
+	 *     found in the reconstruction.
+	 *   • p_ij in the paper is equal numBothSamePairs/numPairs.
+	 *   • t_k in the paper is equal numGtSamePairs/numPairs.
+	 *
+	 * "rand merge" is defined analogously, given same labels in REC.
+	 *
+	 *   • Here, we call that "precision".
+	 *   • p_ij in the paper is equal numBothSamePairs/numPairs.
+	 *   • s_k in the paper is equal numRecSamePairs/numPairs.
+	 *
+	 * "f-score" in the paper is the harmonic mean of "rand split" and "rand 
+	 * merge".
+	 *
+	 *   • Here, it is the harmonic mean of "precision" and "recall", i.e., the 
+	 *     same.
+	 *
+	 * To obtain the counts, we ignore every pixel that has label 0 in GT, if 
+	 * option ignoreBackground was set.
+	 */
+
 	double precision = (double)numBothSamePairs/numRecSamePairs;
 	double recall    = (double)numBothSamePairs/numGtSamePairs;
 	double fscore    = 2*(precision*recall)/(precision + recall);
