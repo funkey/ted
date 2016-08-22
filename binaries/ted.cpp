@@ -71,6 +71,16 @@ util::ProgramOption optionReportTed(
 		util::_description_text = "Compute the tolerant edit distance for the error report.",
 		util::_default_value    = true);
 
+util::ProgramOption optionIgnoreBackground(
+		util::_module           = "evaluation",
+		util::_long_name        = "ignoreBackground",
+		util::_description_text = "For the computation of VOI and RAND, do not consider background pixels in the ground truth.");
+
+util::ProgramOption optionGrowSlices(
+		util::_module           = "evaluation",
+		util::_long_name        = "growSlices",
+		util::_description_text = "For the computation of VOI and RAND, grow the reconstruction slices until no background label is present anymore.");
+
 void readImageStackFromOption(ImageStack& stack, std::string option) {
 
 	// hdf file given?
@@ -136,12 +146,16 @@ int main(int optionc, char** optionv) {
 
 		// setup error report
 
-		pipeline::Process<ErrorReport> report(
-				optionPlotFileHeader.as<bool>(),
-				optionReportTed.as<bool>(),
-				optionReportRand.as<bool>(),
-				optionReportVoi.as<bool>(),
-				optionReportDetectionOverlap.as<bool>());
+		ErrorReport::Parameters parameters;
+		parameters.headerOnly = optionPlotFileHeader.as<bool>();
+		parameters.reportTed = optionReportTed.as<bool>();
+		parameters.reportRand = optionReportRand.as<bool>();
+		parameters.reportVoi = optionReportVoi.as<bool>();
+		parameters.reportDetectionOverlap = optionReportDetectionOverlap.as<bool>();
+		parameters.ignoreBackground = optionIgnoreBackground.as<bool>();
+		parameters.growSlices = optionGrowSlices.as<bool>();
+
+		pipeline::Process<ErrorReport> report(parameters);
 
 		if (optionPlotFileHeader) {
 

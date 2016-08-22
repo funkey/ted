@@ -19,7 +19,7 @@ public:
 	 *              If set to true, no error will be computed, only the header 
 	 *              information in Errors::errorHeader() will be set.
 	 */
-	VariationOfInformation(bool headerOnly = false);
+	VariationOfInformation(bool headerOnly = false, bool ignoreBackground = false);
 
 private:
 

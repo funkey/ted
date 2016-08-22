@@ -5,51 +5,42 @@
 #include <util/Logger.h>
 #include "ErrorReport.h"
 
-util::ProgramOption optionGrowSlices(
-		util::_module           = "evaluation",
-		util::_long_name        = "growSlices",
-		util::_description_text = "For the computation of VOI and RAND, grow the reconstruction slices until no background label is present anymore.");
-
 logger::LogChannel errorreportlog("errorreportlog", "[ErrorReport] ");
 
-ErrorReport::ErrorReport(
-		bool headerOnly,
-		bool reportTed,
-		bool reportRand,
-		bool reportVoi,
-		bool reportDetectionOverlap) :
-	_voi(headerOnly),
-	_rand(headerOnly),
-	_detectionOverlap(headerOnly),
-	_ted(headerOnly),
-	_reportAssembler(headerOnly),
-	_pipelineSetup(false) {
+ErrorReport::ErrorReport(const Parameters& parameters) :
+	_voi(parameters.headerOnly, parameters.ignoreBackground),
+	_rand(parameters.headerOnly, parameters.ignoreBackground),
+	_detectionOverlap(parameters.headerOnly),
+	_ted(parameters.headerOnly),
+	_reportAssembler(parameters.headerOnly),
+	_pipelineSetup(false),
+	_parameters(parameters) {
 
-	if (!headerOnly) {
+	if (!parameters.headerOnly) {
 
 		registerInput(_groundTruthIdMap, "ground truth");
 		registerInput(_reconstruction, "reconstruction");
 	}
 
-	if (reportVoi) {
+	if (parameters.reportVoi) {
 
 		_reportAssembler->addInput("errors", _voi->getOutput("errors"));
 		registerOutput(_voi->getOutput("errors"), "voi errors");
 	}
 
-	if (reportRand) {
+	if (parameters.reportRand) {
 
 		_reportAssembler->addInput("errors", _rand->getOutput("errors"));
 		registerOutput(_rand->getOutput("errors"), "rand errors");
 	}
 
-	if (reportDetectionOverlap) {
+	if (parameters.reportDetectionOverlap) {
 
 		_reportAssembler->addInput("errors", _detectionOverlap->getOutput("errors"));
 		registerOutput(_detectionOverlap->getOutput("errors"), "detection overlap errors");
 	}
 
-	if (reportTed) {
+	if (parameters.reportTed) {
 
 		_reportAssembler->addInput("errors", _ted->getOutput("errors"));
 		registerOutput(_ted->getOutput("errors"), "ted errors");
@@ -57,12 +48,12 @@ ErrorReport::ErrorReport(
 
 	registerOutput(_reportAssembler->getOutput("error report header"), "error report header");
 
-	if (!headerOnly) {
+	if (!parameters.headerOnly) {
 
 		registerOutput(_reportAssembler->getOutput("error report"), "error report");
 		registerOutput(_reportAssembler->getOutput("human readable error report"), "human readable error report");
 
-		if (reportTed)
+		if (parameters.reportTed)
 			registerOutput(_ted->getOutput("corrected reconstruction"), "ted corrected reconstruction");
 
 	} else {
@@ -79,7 +70,7 @@ ErrorReport::updateOutputs() {
 
 	LOG_DEBUG(errorreportlog) << "setting up internal pipeline" << std::endl;
 
-	if (optionGrowSlices) {
+	if (_parameters.growSlices) {
 
 		pipeline::Process<> voiRandIdMapProvider;
 

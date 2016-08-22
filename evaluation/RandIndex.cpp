@@ -3,15 +3,10 @@
 #include <util/ProgramOptions.h>
 #include "RandIndex.h"
 
-util::ProgramOption optionRandIgnoreBackground(
-		util::_module           = "evaluation",
-		util::_long_name        = "randIgnoreBackground",
-		util::_description_text = "For the computation of the RAND, do not consider background pixels in the ground truth.");
-
 logger::LogChannel randindexlog("randindexlog", "[ResultEvaluator] ");
 
-RandIndex::RandIndex(bool headerOnly) :
-		_ignoreBackground(optionRandIgnoreBackground.as<bool>()),
+RandIndex::RandIndex(bool headerOnly, bool ignoreBackground) :
+		_ignoreBackground(ignoreBackground),
 		_headerOnly(headerOnly) {
 
 	if (!_headerOnly) {

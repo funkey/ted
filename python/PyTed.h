@@ -33,7 +33,13 @@ public:
 		pipeline::Value<ImageStack> groundTruth = imageStackFromArray(gt);
 		pipeline::Value<ImageStack> reconstruction = imageStackFromArray(rec);
 
-		pipeline::Process<ErrorReport> report(false, _reportTed, _reportRand, _reportVoi, false);
+		ErrorReport::Parameters parameters;
+		parameters.reportTed = false;
+		parameters.reportRand = true;
+		parameters.reportVoi = true;
+		parameters.ignoreBackground = true;
+
+		pipeline::Process<ErrorReport> report(parameters);
 		report->setInput("reconstruction", reconstruction);
 		report->setInput("ground truth", groundTruth);
 

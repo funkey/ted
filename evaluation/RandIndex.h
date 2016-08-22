@@ -16,7 +16,7 @@ public:
 	 *              If set to true, no error will be computed, only the header 
 	 *              information in Errors::errorHeader() will be set.
 	 */
-	RandIndex(bool headerOnly = false);
+	RandIndex(bool headerOnly = false, bool ignoreBackground = false);
 
 private:
 

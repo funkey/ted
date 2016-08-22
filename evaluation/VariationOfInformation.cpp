@@ -3,15 +3,10 @@
 #include <util/ProgramOptions.h>
 #include "VariationOfInformation.h"
 
-util::ProgramOption optionVoiIgnoreBackground(
-		util::_module           = "evaluation",
-		util::_long_name        = "voiIgnoreBackground",
-		util::_description_text = "For the computation of the VOI, do not consider background pixels in the ground truth.");
-
 logger::LogChannel variationofinformationlog("variationofinformationlog", "[ResultEvaluator] ");
 
-VariationOfInformation::VariationOfInformation(bool headerOnly) :
-		_ignoreBackground(optionVoiIgnoreBackground.as<bool>()),
+VariationOfInformation::VariationOfInformation(bool headerOnly, bool ignoreBackground) :
+		_ignoreBackground(ignoreBackground),
 		_headerOnly(headerOnly) {
 
 	if (!_headerOnly) {

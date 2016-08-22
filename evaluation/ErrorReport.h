@@ -13,21 +13,62 @@ class ErrorReport : public pipeline::SimpleProcessNode<> {
 
 public:
 
+	struct Parameters {
+
+		Parameters() :
+			headerOnly(false),
+			reportTed(true),
+			reportRand(false),
+			reportVoi(false),
+			reportDetectionOverlap(false),
+			ignoreBackground(false),
+			growSlices(false) {}
+
+		/**
+		 * If set to true, no error will be computed, only the header 
+		 * information for the output "error report header" will be fetched.
+		 */
+		bool headerOnly;
+
+		/**
+		 * Compute the TED (enabled by default).
+		 */
+		bool reportTed;
+
+		/**
+		 * Compute the RAND index.
+		 */
+		bool reportRand;
+
+		/**
+		 * Compute VOI.
+		 */
+		bool reportVoi;
+
+		/**
+		 * Compute detection overlap (only for 2D images).
+		 */
+		bool reportDetectionOverlap;
+
+		/**
+		 * For VOI and RAND, ignore background pixels in the ground truth.
+		 */
+		bool ignoreBackground;
+
+		/**
+		 * For VOI and RAND, grow reconstruction labels in each image to 
+		 * eliminate background.
+		 */
+		bool growSlices;
+	};
+
 	/**
 	 * Create a new error report.
 	 *
-	 * @param headerOnly
-	 *              If set to true, no error will be computed, only the header 
-	 *              information for the output "error report header" will be 
-	 *              fetched.
+	 * @param parameters
+	 *             See struct Parameters.
 	 */
-	ErrorReport(
-			bool headerOnly = false,
-			bool reportTed = true,
-			bool reportRand = false,
-			bool reportVoi = false,
-			bool reportDetectionOverlap = false
-			);
+	ErrorReport(const Parameters& parameters);
 
 private:
 
@@ -126,6 +167,8 @@ private:
 	pipeline::Output<std::string>                  _humanReadableReport;
 
 	bool _pipelineSetup;
+
+	Parameters _parameters;
 };
 
 #endif // TED_EVALUATION_ERROR_REPORT_H__
