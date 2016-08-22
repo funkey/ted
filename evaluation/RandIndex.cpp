@@ -43,7 +43,7 @@ RandIndex::updateOutputs() {
 	unsigned int width  = (*_reconstruction)[0]->width();
 	unsigned int height = (*_reconstruction)[0]->height();
 
-	size_t numLocations = depth*width*height;
+	uint64_t numLocations = depth*width*height;
 
 	if (numLocations == 0) {
 
@@ -53,9 +53,9 @@ RandIndex::updateOutputs() {
 		return;
 	}
 
-	size_t numGtSamePairs   = 0;
-	size_t numRecSamePairs  = 0;
-	size_t numBothSamePairs = 0;
+	uint64_t numGtSamePairs   = 0;
+	uint64_t numRecSamePairs  = 0;
+	uint64_t numBothSamePairs = 0;
 
 	double numAgree = getNumAgreeingPairs(*_reconstruction, *_groundTruth, numLocations, numGtSamePairs, numRecSamePairs, numBothSamePairs);
 	double numPairs = (static_cast<double>(numLocations)/2)*(static_cast<double>(numLocations) - 1);
@@ -111,14 +111,14 @@ RandIndex::updateOutputs() {
 	_errors->setAdaptedRandError(1.0 - fscore);
 }
 
-size_t
+uint64_t
 RandIndex::getNumAgreeingPairs(
 		const ImageStack& stack1,
 		const ImageStack& stack2,
-		size_t& numLocations,
-		size_t& numSameComponentPairs1,
-		size_t& numSameComponentPairs2,
-		size_t& numSameComponentPairs12) {
+		uint64_t& numLocations,
+		uint64_t& numSameComponentPairs1,
+		uint64_t& numSameComponentPairs2,
+		uint64_t& numSameComponentPairs12) {
 
 	// Implementation following algorith by Bjoern Andres:
 	//
@@ -126,8 +126,8 @@ RandIndex::getNumAgreeingPairs(
 
 	typedef float                       Label;
 	typedef std::pair<Label,    Label>  LabelPair;
-	typedef std::map<LabelPair, size_t> ContingencyMatrix;
-	typedef std::map<Label,     size_t> SumVector;
+	typedef std::map<LabelPair, uint64_t> ContingencyMatrix;
+	typedef std::map<Label,     uint64_t> SumVector;
 
 	ContingencyMatrix c;
 	SumVector         a;
@@ -158,10 +158,10 @@ RandIndex::getNumAgreeingPairs(
 
 	LabelPair labelPair;
 	Label     label;
-	size_t    n;
+	uint64_t    n;
 
-	size_t A = 0;
-	size_t B = numLocations*numLocations;
+	uint64_t A = 0;
+	uint64_t B = numLocations*numLocations;
 
 	numSameComponentPairs1 = 0;
 	numSameComponentPairs2 = 0;
