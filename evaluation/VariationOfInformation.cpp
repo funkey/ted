@@ -84,10 +84,10 @@ VariationOfInformation::updateOutputs() {
 	double I  = 0.0;
 
 	for(typename LabelProb::const_iterator i = _p1.begin(); i != _p1.end(); i++)
-		H1 -= i->second * std::log(i->second);
+		H1 -= i->second * std::log2(i->second);
 
 	for(typename LabelProb::const_iterator i = _p2.begin(); i != _p2.end(); i++)
-		H2 -= i->second * std::log(i->second);
+		H2 -= i->second * std::log2(i->second);
 
 	for(typename JointLabelProb::const_iterator i = _p12.begin(); i != _p12.end(); i++) {
 
@@ -98,7 +98,7 @@ VariationOfInformation::updateOutputs() {
 		const double pj  = _p1[j];
 		const double pk  = _p2[k];
 
-		I += pjk * std::log( pjk / (pj*pk) );
+		I += pjk * std::log2( pjk / (pj*pk) );
 	}
 
 	// H(stack 1, stack2)
