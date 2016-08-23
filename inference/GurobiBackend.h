@@ -60,11 +60,29 @@ public:
 
 	void addConstraint(const LinearConstraint& constraint);
 
+	/**
+	 * Force the value of a variable to be a given value, i.e., pin the variable 
+	 * to a fixed value.
+	 *
+	 * @param varNum
+	 *              The number of the variable to pin.
+	 *
+	 * @param value
+	 *              The value the variable has to assume.
+	 */
+	void pinVariable(unsigned int varNum, double value);
+
+	/**
+	 * Remove a previous pin from a variable.
+	 *
+	 * @param varNum
+	 *              The number of the variable to unpin.
+	 *
+	 * @return True, if the variable was pinned before.
+	 */
+	bool unpinVariable(unsigned int varNum);
+
 	bool solve(Solution& solution, double& value, std::string& message);
-
-	void pinVariable(unsigned int varNum, double value) { UTIL_THROW_EXCEPTION(GurobiException, "not yet implemented"); }
-
-	bool unpinVariable(unsigned int varNum) { UTIL_THROW_EXCEPTION(GurobiException, "not yet implemented"); }
 
 private:
 
@@ -109,4 +127,3 @@ private:
 #endif // HAVE_GUROBI
 
 #endif // GUROBI_SOLVER_H__
-
