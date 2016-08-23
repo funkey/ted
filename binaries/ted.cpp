@@ -13,7 +13,9 @@
 #include <evaluation/TolerantEditDistanceErrorsWriter.h>
 #include <util/ProgramOptions.h>
 #include <util/Logger.h>
+#ifdef HAVE_HDF5
 #include <vigra/hdf5impex.hxx>
+#endif
 
 using namespace logger;
 
@@ -87,6 +89,7 @@ void readImageStackFromOption(ImageStack& stack, std::string option) {
 	size_t sepPos = option.find_first_of(":");
 	if (sepPos != std::string::npos) {
 
+#ifdef HAVE_HDF5
 		std::string hdfFileName = option.substr(0, sepPos);
 		std::string dataset     = option.substr(sepPos + 1);
 
@@ -114,6 +117,11 @@ void readImageStackFromOption(ImageStack& stack, std::string option) {
 					p);
 			stack.setResolution(p[0], p[1], p[2]);
 		}
+#else
+		UTIL_THROW_EXCEPTION(
+				UsageError,
+				"This build does not support reading form HDF5 files. Set CMake variable BUILD_WITH_HDF5 and recompile.");
+#endif
 
 	// read stack from directory of images
 	} else {
