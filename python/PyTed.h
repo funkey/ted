@@ -49,6 +49,8 @@ public:
 		summary["voi_split"] = voiErrors->getSplitEntropy();
 		summary["voi_merge"] = voiErrors->getMergeEntropy();
 		summary["rand_index"] = randErrors->getRandIndex();
+		summary["rand_precision"] = randErrors->getPrecision();
+		summary["rand_recall"] = randErrors->getRecall();
 		summary["adapted_rand_error"] = randErrors->getAdaptedRandError();
 		summary["ted_version"] = std::string(__git_sha1);
 		return summary;

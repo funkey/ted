@@ -15,9 +15,17 @@ public:
 
 	void setNumAggreeingPairs(double numAggreeingPairs) { _numAgreeing = numAggreeingPairs; }
 
+	void setPrecision(double precision) { _precision = precision; }
+
+	void setRecall(double recall) { _recall = recall; }
+
 	void setAdaptedRandError(double arand) { _arand = arand; }
 
 	double getRandIndex() { return _numAgreeing/_numPairs; }
+
+	double getPrecision() { return _precision; }
+
+	double getRecall() { return _recall; }
 
 	double getAdaptedRandError() { return _arand; }
 
@@ -45,6 +53,8 @@ private:
 
 	double _numPairs;
 	double _numAgreeing;
+	double _precision;
+	double _recall;
 	double _arand;
 };
 

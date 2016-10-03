@@ -108,6 +108,8 @@ RandIndex::updateOutputs() {
 
 	_errors->setNumPairs(numPairs);
 	_errors->setNumAggreeingPairs(numAgree);
+	_errors->setPrecision(precision);
+	_errors->setRecall(recall);
 	_errors->setAdaptedRandError(1.0 - fscore);
 }
 
