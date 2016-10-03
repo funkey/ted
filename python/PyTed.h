@@ -124,7 +124,11 @@ private:
 
 	void initialize() {
 
-		import_array();
+		// import_array is a macro expanding to returning different types across 
+		// different versions of the NumPy API. This lambda hack works around 
+		// that.
+		auto a = []{ import_array(); };
+		a();
 	}
 
 	bool _reportTed;

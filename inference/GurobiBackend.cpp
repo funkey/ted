@@ -1,23 +1,5 @@
 #include <config.h>
 
-//void
-//GurobiBackend::pinVariable(unsigned int varNum, double value) {
-
-	//_variables[varNum].set(GRB_DoubleAttr_LB, value);
-	//_variables[varNum].set(GRB_DoubleAttr_UB, value);
-//}
-
-//bool
-//GurobiBackend::unpinVariable(unsigned int varNum) {
-
-	//bool pinned = (_variables[varNum].get(GRB_DoubleAttr_LB) > -GRB_INFINITY);
-
-	//_variables[varNum].set(GRB_DoubleAttr_LB, -GRB_INFINITY);
-	//_variables[varNum].set(GRB_DoubleAttr_UB,  GRB_INFINITY);
-
-	//return pinned;
-//}
-
 #ifdef HAVE_GUROBI
 
 #include <sstream>
@@ -275,6 +257,26 @@ GurobiBackend::addConstraint(const LinearConstraint& constraint) {
 
 	delete[] inds;
 	delete[] vals;
+}
+
+void
+GurobiBackend::pinVariable(unsigned int varNum, double value) {
+
+	GRB_CHECK(GRBsetdblattrelement(_model, GRB_DBL_ATTR_LB, varNum, value));
+	GRB_CHECK(GRBsetdblattrelement(_model, GRB_DBL_ATTR_UB, varNum, value));
+}
+
+bool
+GurobiBackend::unpinVariable(unsigned int varNum) {
+
+	double lb;
+	GRB_CHECK(GRBgetdblattrelement(_model, GRB_DBL_ATTR_LB, varNum, &lb));
+	bool pinned = (lb > -GRB_INFINITY);
+
+	GRB_CHECK(GRBsetdblattrelement(_model, GRB_DBL_ATTR_LB, varNum, -GRB_INFINITY));
+	GRB_CHECK(GRBsetdblattrelement(_model, GRB_DBL_ATTR_UB, varNum,  GRB_INFINITY));
+
+	return pinned;
 }
 
 bool
