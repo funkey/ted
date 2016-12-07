@@ -1,1 +1,1 @@
-from pyted import *
+from .pyted import *
