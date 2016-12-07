@@ -23,22 +23,16 @@ Get Source:
   git submodule update --init
   ```
 
-Configure:
-----------
-
-  ```
-  mkdir build
-  cd build
-  cmake ..
-  ```
-
   Set cmake variable Gurobi_ROOT_DIR (or the environment variable
   GUROBI_ROOT_DIR before you run cmake) to the Gurobi subdirectory containing
   the /lib and /bin directories.
 
-Compile:
---------
+Compile pyted
+-------------
 
   ```
-  make
+  conda create -n ted python=2.7
+  source activate ted
+  conda install numpy
+  python setup.py install
   ```
