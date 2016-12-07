@@ -33,14 +33,14 @@ DetectionOverlap::updateOutputs() {
 				UsageError,
 				"The DetectionOverlap loss only accepts single 2D images");
 
-	typedef std::pair<float, float> pair_t;
+	typedef std::pair<size_t, size_t> pair_t;
 
-	std::map<float, util::point<float> > gtCenters;
-	std::map<float, util::point<float> > recCenters;
-	std::set<float> gtLabels;
-	std::set<float> recLabels;
-	std::map<float, unsigned int> gtSizes;
-	std::map<float, unsigned int> recSizes;
+	std::map<size_t, util::point<float> > gtCenters;
+	std::map<size_t, util::point<float> > recCenters;
+	std::set<size_t> gtLabels;
+	std::set<size_t> recLabels;
+	std::map<size_t, unsigned int> gtSizes;
+	std::map<size_t, unsigned int> recSizes;
 
 	getCenterPoints(*(*_stack1)[0], gtCenters, gtLabels, gtSizes);
 	getCenterPoints(*(*_stack2)[0], recCenters, recLabels, recSizes);
@@ -50,8 +50,8 @@ DetectionOverlap::updateOutputs() {
 
 	std::set<pair_t>                  overlapPairs;
 	std::map<pair_t, unsigned int>    overlapAreas;
-	std::map<float, std::set<float> > gtToRecOverlaps;
-	std::map<float, std::set<float> > recToGtOverlaps;
+	std::map<size_t, std::set<size_t> > gtToRecOverlaps;
+	std::map<size_t, std::set<size_t> > recToGtOverlaps;
 
 	getOverlaps(
 			*(*_stack1)[0],
@@ -113,10 +113,10 @@ DetectionOverlap::updateOutputs() {
 	// (analogously for other direction)
 
 	pipeline::Value<LinearConstraints> constraints;
-	foreach (float recLabel, recLabels) {
+	foreach (size_t recLabel, recLabels) {
 
 		LinearConstraint constraint;
-		foreach (float gtLabel, recToGtOverlaps[recLabel]) {
+		foreach (size_t gtLabel, recToGtOverlaps[recLabel]) {
 
 			unsigned int varNum = pairToVariable[std::make_pair(gtLabel, recLabel)];
 			constraint.setCoefficient(varNum, 1.0);
@@ -128,10 +128,10 @@ DetectionOverlap::updateOutputs() {
 		constraints->add(constraint);
 	}
 
-	foreach (float gtLabel, gtLabels) {
+	foreach (size_t gtLabel, gtLabels) {
 
 		LinearConstraint constraint;
-		foreach (float recLabel, gtToRecOverlaps[gtLabel]) {
+		foreach (size_t recLabel, gtToRecOverlaps[gtLabel]) {
 
 			unsigned int varNum = pairToVariable[std::make_pair(gtLabel, recLabel)];
 			constraint.setCoefficient(varNum, 1.0);
@@ -167,8 +167,8 @@ DetectionOverlap::updateOutputs() {
 
 	// get the optimal matching
 
-	std::map<float, std::set<float> > gtToRecMatches;
-	std::map<float, std::set<float> > recToGtMatches;
+	std::map<size_t, std::set<size_t> > gtToRecMatches;
+	std::map<size_t, std::set<size_t> > recToGtMatches;
 	std::set<pair_t> matches;
 	for (unsigned int varNum = 0; varNum < overlapPairs.size(); varNum++) {
 
@@ -194,10 +194,10 @@ DetectionOverlap::updateOutputs() {
 
 	// get FP and FN
 
-	foreach (float gtLabel, gtLabels)
+	foreach (size_t gtLabel, gtLabels)
 		if (gtToRecMatches.count(gtLabel) == 0)
 			_errors->addFalseNegative(gtLabel);
-	foreach (float recLabel, recLabels)
+	foreach (size_t recLabel, recLabels)
 		if (recToGtMatches.count(recLabel) == 0)
 			_errors->addFalsePositive(recLabel);
 
@@ -228,14 +228,14 @@ DetectionOverlap::updateOutputs() {
 void
 DetectionOverlap::getCenterPoints(
 		const Image&                          image,
-		std::map<float, util::point<float> >& centers,
-		std::set<float>&                      labels,
-		std::map<float, unsigned int>&        sizes) {
+		std::map<size_t, util::point<float> >& centers,
+		std::set<size_t>&                      labels,
+		std::map<size_t, unsigned int>&        sizes) {
 
 	for (unsigned int y = 0; y < image.height(); y++)
 		for (unsigned int x = 0; x < image.width(); x++) {
 
-			float label = image(x, y);
+			size_t label = image(x, y);
 
 			if (label == 0)
 				continue;
@@ -254,7 +254,7 @@ DetectionOverlap::getCenterPoints(
 			labels.insert(label);
 		}
 
-	foreach (float label, labels)
+	foreach (size_t label, labels)
 		centers[label] /= sizes[label];
 }
 
@@ -262,10 +262,10 @@ void
 DetectionOverlap::getOverlaps(
 		const Image& a,
 		const Image& b,
-		std::set<std::pair<float, float> >& overlapPairs,
-		std::map<std::pair<float, float>, unsigned int>& overlapAreas,
-		std::map<float, std::set<float> >& atob,
-		std::map<float, std::set<float> >& btoa) {
+		std::set<std::pair<size_t, size_t> >& overlapPairs,
+		std::map<std::pair<size_t, size_t>, unsigned int>& overlapAreas,
+		std::map<size_t, std::set<size_t> >& atob,
+		std::map<size_t, std::set<size_t> >& btoa) {
 
 	overlapPairs.clear();
 	overlapAreas.clear();
@@ -275,13 +275,13 @@ DetectionOverlap::getOverlaps(
 	for (unsigned int y = 0; y < a.height(); y++)
 		for (unsigned int x = 0; x < a.width(); x++) {
 
-			float labelA = a(x, y);
-			float labelB = b(x, y);
+			size_t labelA = a(x, y);
+			size_t labelB = b(x, y);
 
 			if (labelA == 0 || labelB == 0)
 				continue;
 
-			std::pair<float, float> p(labelA, labelB);
+			std::pair<size_t, size_t> p(labelA, labelB);
 			overlapPairs.insert(p);
 			if (overlapAreas.count(p))
 				overlapAreas[p]++;

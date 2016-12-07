@@ -11,20 +11,20 @@ LocalToleranceFunction::clear() {
 	_cellsByRecToGtLabel.clear();
 }
 
-std::set<float>&
+std::set<size_t>&
 LocalToleranceFunction::getReconstructionLabels() {
 
 	return _reconstructionLabels;
 }
 
-std::set<float>&
+std::set<size_t>&
 LocalToleranceFunction::getGroundTruthLabels() {
 
 	return _groundTruthLabels;
 }
 
 void
-LocalToleranceFunction::registerPossibleMatch(float gtLabel, float recLabel) {
+LocalToleranceFunction::registerPossibleMatch(size_t gtLabel, size_t recLabel) {
 
 	_possibleGroundTruthMatches[gtLabel].insert(recLabel);
 	_possibleReconstructionMatches[recLabel].insert(gtLabel);
@@ -32,14 +32,14 @@ LocalToleranceFunction::registerPossibleMatch(float gtLabel, float recLabel) {
 	_reconstructionLabels.insert(recLabel);
 }
 
-std::set<float>&
-LocalToleranceFunction::getPossibleMatchesByGt(float gtLabel) {
+std::set<size_t>&
+LocalToleranceFunction::getPossibleMatchesByGt(size_t gtLabel) {
 
 	return _possibleGroundTruthMatches[gtLabel];
 }
 
-std::set<float>&
-LocalToleranceFunction::getPossibleMathesByRec(float recLabel) {
+std::set<size_t>&
+LocalToleranceFunction::getPossibleMathesByRec(size_t recLabel) {
 
 	return _possibleReconstructionMatches[recLabel];
 }

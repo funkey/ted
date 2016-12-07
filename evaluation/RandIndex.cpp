@@ -126,7 +126,7 @@ RandIndex::getNumAgreeingPairs(
 	//
 	// https://github.com/bjoern-andres/partition-comparison/blob/master/include/andres/partition-comparison.hxx
 
-	typedef float                       Label;
+	typedef size_t                      Label;
 	typedef std::pair<Label,    Label>  LabelPair;
 	typedef std::map<LabelPair, uint64_t> ContingencyMatrix;
 	typedef std::map<Label,     uint64_t> SumVector;

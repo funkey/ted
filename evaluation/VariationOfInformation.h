@@ -7,8 +7,8 @@
 
 class VariationOfInformation : public pipeline::SimpleProcessNode<> {
 
-	typedef std::map<float, double>                   LabelProb;
-	typedef std::map<std::pair<float, float>, double> JointLabelProb;
+	typedef std::map<size_t, double>                    LabelProb;
+	typedef std::map<std::pair<size_t, size_t>, double> JointLabelProb;
 
 public:
 

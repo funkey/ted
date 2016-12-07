@@ -1,6 +1,5 @@
 #include <vigra/seededregiongrowing.hxx>
 #include <vigra/distancetransform.hxx>
-#include <imageprocessing/io/ImageStackDirectoryWriter.h>
 #include <util/ProgramOptions.h>
 #include <util/Logger.h>
 #include "ErrorReport.h"
@@ -115,19 +114,15 @@ ErrorReport::GrowSlices::updateOutputs() {
 		vigra::MultiArray<2, float> dist(image->width(), image->height());
 		vigra::distanceTransform(*image, dist, 0, 2);
 
-		float min, max;
+		size_t min, max;
 		image->minmax(&min, &max);
 
 		// init statistics functor
-		vigra::ArrayOfRegionStatistics<vigra::SeedRgDirectValueFunctor<float> > stats(max);
+		vigra::ArrayOfRegionStatistics<vigra::SeedRgDirectValueFunctor<size_t> > stats(max);
 
 		// grow regions
 		vigra::seededRegionGrowing(dist, *grown, *grown, stats);
 
 		_grown->add(grown);
 	}
-
-	pipeline::Process<ImageStackDirectoryWriter> writer("result_grown");
-	writer->setInput(_grown.getSharedPointer());
-	writer->write();
 }

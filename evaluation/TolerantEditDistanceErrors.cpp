@@ -16,7 +16,7 @@ TolerantEditDistanceErrors::TolerantEditDistanceErrors() :
 	LOG_DEBUG(errorslog) << "created errors data structure without background label" << std::endl;
 }
 
-TolerantEditDistanceErrors::TolerantEditDistanceErrors(float gtBackgroundLabel, float recBackgroundLabel) :
+TolerantEditDistanceErrors::TolerantEditDistanceErrors(size_t gtBackgroundLabel, size_t recBackgroundLabel) :
 	_haveBackgroundLabel(true),
 	_gtBackgroundLabel(gtBackgroundLabel),
 	_recBackgroundLabel(recBackgroundLabel),
@@ -44,12 +44,12 @@ TolerantEditDistanceErrors::clear() {
 }
 
 void
-TolerantEditDistanceErrors::addMapping(unsigned int cellIndex, float recLabel) {
+TolerantEditDistanceErrors::addMapping(unsigned int cellIndex, size_t recLabel) {
 
 	if (!_cells)
 		BOOST_THROW_EXCEPTION(UsageError() << error_message("cells need to be set before using addMapping()") << STACK_TRACE);
 
-	float gtLabel = (*_cells)[cellIndex].getGroundTruthLabel();
+	size_t gtLabel = (*_cells)[cellIndex].getGroundTruthLabel();
 
 	addEntry(_cellsByRecToGtLabel, recLabel, gtLabel, cellIndex);
 	addEntry(_cellsByGtToRecLabel, gtLabel, recLabel, cellIndex);
@@ -57,30 +57,30 @@ TolerantEditDistanceErrors::addMapping(unsigned int cellIndex, float recLabel) {
 	_dirty = true;
 }
 
-std::vector<float>
-TolerantEditDistanceErrors::getReconstructionLabels(float gtLabel) {
+std::vector<size_t>
+TolerantEditDistanceErrors::getReconstructionLabels(size_t gtLabel) {
 
-	std::vector<float> recLabels;
+	std::vector<size_t> recLabels;
 
-	foreach(float recLabel, _cellsByGtToRecLabel[gtLabel] | boost::adaptors::map_keys)
+	foreach(size_t recLabel, _cellsByGtToRecLabel[gtLabel] | boost::adaptors::map_keys)
 		recLabels.push_back(recLabel);
 
 	return recLabels;
 }
 
-std::vector<float>
-TolerantEditDistanceErrors::getGroundTruthLabels(float recLabel) {
+std::vector<size_t>
+TolerantEditDistanceErrors::getGroundTruthLabels(size_t recLabel) {
 
-	std::vector<float> gtLabels;
+	std::vector<size_t> gtLabels;
 
-	foreach(float gtLabel, _cellsByRecToGtLabel[recLabel] | boost::adaptors::map_keys)
+	foreach(size_t gtLabel, _cellsByRecToGtLabel[recLabel] | boost::adaptors::map_keys)
 		gtLabels.push_back(gtLabel);
 
 	return gtLabels;
 }
 
 unsigned int
-TolerantEditDistanceErrors::getOverlap(float gtLabel, float recLabel) {
+TolerantEditDistanceErrors::getOverlap(size_t gtLabel, size_t recLabel) {
 
 	if (!_cells)
 		BOOST_THROW_EXCEPTION(UsageError() << error_message("cells need to be set before using getOverlap()") << STACK_TRACE);
@@ -123,34 +123,34 @@ TolerantEditDistanceErrors::getNumFalseNegatives() {
 	return _numFalseNegatives;
 }
 
-std::set<float>
+std::set<size_t>
 TolerantEditDistanceErrors::getMergeLabels() {
 
 	updateErrorCounts();
 
-	std::set<float> mergeLabels;
-	foreach (float k, _merges | boost::adaptors::map_keys)
+	std::set<size_t> mergeLabels;
+	foreach (size_t k, _merges | boost::adaptors::map_keys)
 		if (!_haveBackgroundLabel || k != _recBackgroundLabel)
 			mergeLabels.insert(k);
 	return mergeLabels;
 }
 
-std::set<float>
+std::set<size_t>
 TolerantEditDistanceErrors::getSplitLabels() {
 
 	updateErrorCounts();
 
-	std::set<float> splitLabels;
-	foreach (float k, _splits | boost::adaptors::map_keys)
+	std::set<size_t> splitLabels;
+	foreach (size_t k, _splits | boost::adaptors::map_keys)
 		if (!_haveBackgroundLabel || k != _gtBackgroundLabel)
 			splitLabels.insert(k);
 	return splitLabels;
 }
 
-std::set<float>
-TolerantEditDistanceErrors::getSplits(float gtLabel) {
+std::set<size_t>
+TolerantEditDistanceErrors::getSplits(size_t gtLabel) {
 
-	std::set<float> splitLabels;
+	std::set<size_t> splitLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
 	foreach (const cells_t& cells, getSplitCells(gtLabel))
@@ -159,10 +159,10 @@ TolerantEditDistanceErrors::getSplits(float gtLabel) {
 	return splitLabels;
 }
 
-std::set<float>
-TolerantEditDistanceErrors::getMerges(float recLabel) {
+std::set<size_t>
+TolerantEditDistanceErrors::getMerges(size_t recLabel) {
 
-	std::set<float> mergeLabels;
+	std::set<size_t> mergeLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
 	foreach (const cells_t& cells, getMergeCells(recLabel))
@@ -171,13 +171,13 @@ TolerantEditDistanceErrors::getMerges(float recLabel) {
 	return mergeLabels;
 }
 
-std::set<float>
+std::set<size_t>
 TolerantEditDistanceErrors::getFalsePositives() {
 
 	if (!_haveBackgroundLabel)
 		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't have a background label -- cannot give false positives"));
 
-	std::set<float> splitLabels;
+	std::set<size_t> splitLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
 	foreach (const cells_t& cells, getSplitCells(_gtBackgroundLabel))
@@ -187,13 +187,13 @@ TolerantEditDistanceErrors::getFalsePositives() {
 	return splitLabels;
 }
 
-std::set<float>
+std::set<size_t>
 TolerantEditDistanceErrors::getFalseNegatives() {
 
 	if (!_haveBackgroundLabel)
 		BOOST_THROW_EXCEPTION(UsageError() << error_message("we don't have a background label -- cannot give false negatives"));
 
-	std::set<float> mergeLabels;
+	std::set<size_t> mergeLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
 	foreach (const cells_t& cells, getMergeCells(_recBackgroundLabel))
@@ -204,14 +204,14 @@ TolerantEditDistanceErrors::getFalseNegatives() {
 }
 
 const TolerantEditDistanceErrors::cell_map_t::mapped_type&
-TolerantEditDistanceErrors::getSplitCells(float gtLabel) {
+TolerantEditDistanceErrors::getSplitCells(size_t gtLabel) {
 
 	updateErrorCounts();
 	return _splits[gtLabel];
 }
 
 const TolerantEditDistanceErrors::cell_map_t::mapped_type&
-TolerantEditDistanceErrors::getMergeCells(float recLabel) {
+TolerantEditDistanceErrors::getMergeCells(size_t recLabel) {
 
 	updateErrorCounts();
 	return _merges[recLabel];
@@ -264,7 +264,7 @@ TolerantEditDistanceErrors::findSplits(
 		cell_map_t&       splits,
 		unsigned int&     numSplits,
 		unsigned int&     numFalsePositives,
-		float             backgroundLabel) {
+		size_t             backgroundLabel) {
 
 	typedef cell_map_t::value_type mapping_t;
 
@@ -288,7 +288,7 @@ TolerantEditDistanceErrors::findSplits(
 }
 
 void
-TolerantEditDistanceErrors::addEntry(cell_map_t& map, float a, float b, unsigned int cellIndex) {
+TolerantEditDistanceErrors::addEntry(cell_map_t& map, size_t a, size_t b, unsigned int cellIndex) {
 
 	map[a][b].insert(cellIndex);
 }

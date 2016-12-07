@@ -31,7 +31,6 @@ include_directories(${PROJECT_SOURCE_DIR})
 add_subdirectory(modules)
 add_subdirectory(inference)
 add_subdirectory(evaluation)
-add_subdirectory(binaries)
 add_subdirectory(python)
 
 ###############

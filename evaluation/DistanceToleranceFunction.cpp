@@ -8,7 +8,7 @@ logger::LogChannel distancetolerancelog("distancetolerancelog", "[DistanceTolera
 DistanceToleranceFunction::DistanceToleranceFunction(
 		float distanceThreshold,
 		bool haveBackgroundLabel,
-		float backgroundLabel) :
+		size_t backgroundLabel) :
 	_haveBackgroundLabel(haveBackgroundLabel),
 	_backgroundLabel(backgroundLabel),
 	_maxDistanceThreshold(distanceThreshold) {}
@@ -46,8 +46,8 @@ DistanceToleranceFunction::extractCells(
 		for (unsigned int x = 0; x < _width; x++)
 			for (unsigned int y = 0; y < _height; y++) {
 
-				float gtLabel  = (*gt)(x, y);
-				float recLabel = (*rec)(x, y);
+				size_t gtLabel  = (*gt)(x, y);
+				size_t recLabel = (*rec)(x, y);
 
 				// argh, vigra starts counting at 1!
 				unsigned int cellIndex = cellLabels(x, y, z) - 1;
@@ -159,7 +159,7 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 				<< " (gt label " << cell.getGroundTruthLabel() << ")"
 				<< std::endl;
 
-		std::set<float> alternativeLabels = getAlternativeLabels(cell, neighborhood, recLabels);
+		std::set<size_t> alternativeLabels = getAlternativeLabels(cell, neighborhood, recLabels);
 
 		// if there are alternatives, include the background label as well (since a 
 		// background label can be created between two foreground labels -- 
@@ -173,7 +173,7 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 		LOG_ALL(distancetolerancelog) << "\tcan map to ";
 
 		// for each alternative label
-		foreach (float recLabel, alternativeLabels) {
+		foreach (size_t recLabel, alternativeLabels) {
 
 			LOG_ALL(distancetolerancelog) << recLabel << " ";
 
@@ -199,7 +199,7 @@ DistanceToleranceFunction::isBoundaryVoxel(int x, int y, int z, const ImageStack
 	if (_depth > 1 && (z == 0 || z == (int)_depth - 1))
 		return true;
 
-	float center = (*stack[z])(x, y);
+	size_t center = (*stack[z])(x, y);
 
 	if (x > 0)
 		if ((*stack[z])(x - 1, y) != center)
@@ -267,17 +267,17 @@ DistanceToleranceFunction::createNeighborhood() {
 	return thresholdOffsets;
 }
 
-std::set<float>
+std::set<size_t>
 DistanceToleranceFunction::getAlternativeLabels(
 		const cell_t& cell,
 		const std::vector<cell_t::Location>& neighborhood,
 		const ImageStack& recLabels) {
 
-	float cellLabel = cell.getReconstructionLabel();
+	size_t cellLabel = cell.getReconstructionLabel();
 
 	// counts for each neighbor label, how often it was found while iterating 
 	// over the cells locations
-	std::map<float, unsigned int> counts;
+	std::map<size_t, unsigned int> counts;
 
 	// the number of cell locations visited so far
 	unsigned int numVisited = 0;
@@ -290,7 +290,7 @@ DistanceToleranceFunction::getAlternativeLabels(
 	foreach (const cell_t::Location& i, cell) {
 
 		// all the labels in the neighborhood of i
-		std::set<float> neighborhoodLabels;
+		std::set<size_t> neighborhoodLabels;
 
 		numVisited++;
 
@@ -312,7 +312,7 @@ DistanceToleranceFunction::getAlternativeLabels(
 				continue;
 
 			// now we have found a boundary pixel within our neighborhood
-			float label = (*(recLabels)[j.z])(j.x, j.y);
+			size_t label = (*(recLabels)[j.z])(j.x, j.y);
 
 			// count how often we see a neighbor label the first time
 			if (label != cellLabel) {
@@ -345,11 +345,11 @@ DistanceToleranceFunction::getAlternativeLabels(
 			break;
 	}
 
-	std::set<float> alternativeLabels;
+	std::set<size_t> alternativeLabels;
 
 	// collect all neighbor labels that we have seen for every location of the 
 	// cell
-	float label;
+	size_t label;
 	unsigned int count;
 	foreach (boost::tie(label, count), counts)
 		if (count == cell.size())

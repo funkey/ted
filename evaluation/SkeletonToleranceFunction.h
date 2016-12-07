@@ -14,7 +14,7 @@ public:
 
 	SkeletonToleranceFunction(
 			float distanceThreshold,
-			float backgroundLabel = 0.0) :
+			size_t backgroundLabel = 0) :
 		DistanceToleranceFunction(
 				distanceThreshold,
 				true, /* have background label */

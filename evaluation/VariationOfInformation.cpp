@@ -91,8 +91,8 @@ VariationOfInformation::updateOutputs() {
 
 	for(typename JointLabelProb::const_iterator i = _p12.begin(); i != _p12.end(); i++) {
 
-		const float j = i->first.first;
-		const float k = i->first.second;
+		const size_t j = i->first.first;
+		const size_t k = i->first.second;
 
 		const double pjk = i->second;
 		const double pj  = _p1[j];

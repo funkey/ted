@@ -107,10 +107,6 @@ private:
 					else
 						value = *static_cast<uint32_t*>(PyArray_GETPTR3(array, z, y, x));
 
-					if (value > 16777216)
-						UTIL_THROW_EXCEPTION(
-								Exception,
-								"array contains value " << value << " which can not be represented exactly in float (which we unfortunately still use...)");
 					(*image)(x,y) = value;
 				}
 

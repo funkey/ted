@@ -18,7 +18,7 @@ ExtractGroundTruthLabels::updateOutputs() {
 	for (unsigned int d = 0; d < depth; d++)
 		_labelStack->add(boost::make_shared<Image>(width, height));
 
-	vigra::MultiArray<3, float> gtVolume(vigra::Shape3(width, height, depth));
+	vigra::MultiArray<3, size_t> gtVolume(vigra::Shape3(width, height, depth));
 	unsigned int z = 0;
 	foreach (boost::shared_ptr<Image> image, *_gtStack) {
 
@@ -26,7 +26,7 @@ ExtractGroundTruthLabels::updateOutputs() {
 		z++;
 	}
 
-	vigra::MultiArray<3, float> gtLabels(vigra::Shape3(width, height, depth));
+	vigra::MultiArray<3, size_t> gtLabels(vigra::Shape3(width, height, depth));
 	vigra::labelMultiArrayWithBackground(
 			gtVolume,
 			gtLabels);
@@ -34,7 +34,7 @@ ExtractGroundTruthLabels::updateOutputs() {
 	z = 0;
 	foreach (boost::shared_ptr<Image> image, *_labelStack) {
 
-		static_cast<vigra::MultiArray<2, float>& >(*image) = gtLabels.bind<2>(z);
+		static_cast<vigra::MultiArray<2, size_t>& >(*image) = gtLabels.bind<2>(z);
 		z++;
 	}
 }

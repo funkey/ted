@@ -10,7 +10,7 @@ public:
 	DistanceToleranceFunction(
 			float distanceThreshold,
 			bool haveBackgroundLabel,
-			float backgroundLabel = 0.0);
+			size_t backgroundLabel = 0);
 
 	void extractCells(
 			unsigned int numCells,
@@ -25,7 +25,7 @@ protected:
 	std::vector<unsigned int> _relabelCandidates;
 
 	bool _haveBackgroundLabel;
-	float _backgroundLabel;
+	size_t _backgroundLabel;
 
 private:
 
@@ -43,7 +43,7 @@ private:
 
 	// search for all relabeling alternatives for the given cell and 
 	// neighborhood
-	std::set<float> getAlternativeLabels(
+	std::set<size_t> getAlternativeLabels(
 			const cell_t& cell,
 			const std::vector<cell_t::Location>& neighborhood,
 			const ImageStack& recLabels);

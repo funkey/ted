@@ -143,7 +143,7 @@ TolerantEditDistance::extractCells() {
 
 	LOG_ALL(tedlog) << "extracting cells in " << _width << "x" << _height << "x" << _depth << " volume" << std::endl;
 
-	vigra::MultiArray<3, std::pair<float, float> > gtAndRec(vigra::Shape3(_width, _height, _depth));
+	vigra::MultiArray<3, std::pair<size_t, size_t> > gtAndRec(vigra::Shape3(_width, _height, _depth));
 	vigra::MultiArray<3, unsigned int>             cellIds(vigra::Shape3(_width, _height, _depth));
 
 	// prepare gt and rec image
@@ -156,8 +156,8 @@ TolerantEditDistance::extractCells() {
 		for (unsigned int x = 0; x < _width; x++)
 			for (unsigned int y = 0; y < _height; y++) {
 
-				float gtLabel  = (*gt)(x, y);
-				float recLabel = (*rec)(x, y);
+				size_t gtLabel  = (*gt)(x, y);
+				size_t recLabel = (*rec)(x, y);
 
 				gtAndRec(x, y, z) = std::make_pair(gtLabel, recLabel);
 			}
@@ -214,7 +214,7 @@ TolerantEditDistance::findBestCellLabels() {
 		assignIndicatorVariable(var++, cellIndex, cell.getGroundTruthLabel(), cell.getReconstructionLabel());
 
 		// one variable for each alternative
-		foreach (float l, cell.getAlternativeLabels()) {
+		foreach (size_t l, cell.getAlternativeLabels()) {
 
 			unsigned int ind = var++;
 			_alternativeIndicators.push_back(std::make_pair(ind, cell.size()));
@@ -239,7 +239,7 @@ TolerantEditDistance::findBestCellLabels() {
 	LOG_ALL(tedlog) << "adding constraints to ensure that rec labels don't disappear" << std::endl;
 
 	// labels can not disappear
-	foreach (float recLabel, _toleranceFunction->getReconstructionLabels()) {
+	foreach (size_t recLabel, _toleranceFunction->getReconstructionLabels()) {
 
 		LinearConstraint constraint;
 		foreach (unsigned int v, getIndicatorsByRec(recLabel))
@@ -253,13 +253,13 @@ TolerantEditDistance::findBestCellLabels() {
 
 	// introduce indicators for each match of ground truth label to 
 	// reconstruction label
-	foreach (float gtLabel, _toleranceFunction->getGroundTruthLabels())
-		foreach (float recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel))
+	foreach (size_t gtLabel, _toleranceFunction->getGroundTruthLabels())
+		foreach (size_t recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel))
 			assignMatchVariable(var++, gtLabel, recLabel);
 
 	// cell label selection activates match
-	foreach (float gtLabel, _toleranceFunction->getGroundTruthLabels()) {
-		foreach (float recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel)) {
+	foreach (size_t gtLabel, _toleranceFunction->getGroundTruthLabels()) {
+		foreach (size_t recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel)) {
 
 			unsigned int matchVar = getMatchVariable(gtLabel, recLabel);
 
@@ -295,7 +295,7 @@ TolerantEditDistance::findBestCellLabels() {
 
 	unsigned int splitBegin = var;
 
-	foreach (float gtLabel, _toleranceFunction->getGroundTruthLabels()) {
+	foreach (size_t gtLabel, _toleranceFunction->getGroundTruthLabels()) {
 
 		unsigned int splitVar = var++;
 
@@ -311,7 +311,7 @@ TolerantEditDistance::findBestCellLabels() {
 
 		LinearConstraint numSplits;
 		numSplits.setCoefficient(splitVar, 1);
-		foreach (float recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel))
+		foreach (size_t recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel))
 			numSplits.setCoefficient(getMatchVariable(gtLabel, recLabel), -1);
 		numSplits.setRelation(Equal);
 		numSplits.setValue(-1);
@@ -344,7 +344,7 @@ TolerantEditDistance::findBestCellLabels() {
 
 	unsigned int mergeBegin = var;
 
-	foreach (float recLabel, _toleranceFunction->getReconstructionLabels()) {
+	foreach (size_t recLabel, _toleranceFunction->getReconstructionLabels()) {
 
 		unsigned int mergeVar = var++;
 
@@ -360,7 +360,7 @@ TolerantEditDistance::findBestCellLabels() {
 
 		LinearConstraint numMerges;
 		numMerges.setCoefficient(mergeVar, 1);
-		foreach (float gtLabel, _toleranceFunction->getPossibleMathesByRec(recLabel))
+		foreach (size_t gtLabel, _toleranceFunction->getPossibleMathesByRec(recLabel))
 			numMerges.setCoefficient(getMatchVariable(gtLabel, recLabel), -1);
 		numMerges.setRelation(Equal);
 		numMerges.setValue(-1);
@@ -445,7 +445,7 @@ TolerantEditDistance::findErrors() {
 		if ((*_solution)[i]) {
 
 			unsigned int cellIndex = _labelingByVar[i].first;
-			float        recLabel  = _labelingByVar[i].second;
+			size_t        recLabel  = _labelingByVar[i].second;
 
 			_errors->addMapping(cellIndex, recLabel);
 		}
@@ -462,7 +462,7 @@ TolerantEditDistance::findErrors() {
 	// all cells that changed label within tolerance
 
 	// all cells that split the ground truth
-	float gtLabel;
+	size_t gtLabel;
 	typedef TolerantEditDistanceErrors::cell_map_t::mapped_type::value_type mapping_t;
 	foreach (gtLabel, _errors->getSplitLabels())
 		foreach (const mapping_t& cells, _errors->getSplitCells(gtLabel))
@@ -471,7 +471,7 @@ TolerantEditDistance::findErrors() {
 					(*(*_splitLocations)[l.z])(l.x, l.y) = cells.first;
 
 	// all cells that split the reconstruction
-	float recLabel;
+	size_t recLabel;
 	foreach (recLabel, _errors->getMergeLabels())
 		foreach (const mapping_t& cells, _errors->getMergeCells(recLabel))
 			foreach (unsigned int cellIndex, cells.second)
@@ -517,7 +517,7 @@ TolerantEditDistance::correctReconstruction() {
 		if ((*_solution)[i]) {
 
 			unsigned int cellIndex = _labelingByVar[i].first;
-			float        recLabel  = _labelingByVar[i].second;
+			size_t        recLabel  = _labelingByVar[i].second;
 			cell_t&      cell      = (*_toleranceFunction->getCells())[cellIndex];
 
 			foreach (const cell_t::Location& l, cell)
@@ -527,7 +527,7 @@ TolerantEditDistance::correctReconstruction() {
 }
 
 void
-TolerantEditDistance::assignIndicatorVariable(unsigned int var, unsigned int cellIndex, float gtLabel, float recLabel) {
+TolerantEditDistance::assignIndicatorVariable(unsigned int var, unsigned int cellIndex, size_t gtLabel, size_t recLabel) {
 
 	LOG_ALL(tedlog) << "adding indicator var " << var << " to assign label " << recLabel << " to cell " << cellIndex << std::endl;
 
@@ -538,19 +538,19 @@ TolerantEditDistance::assignIndicatorVariable(unsigned int var, unsigned int cel
 }
 
 std::vector<unsigned int>&
-TolerantEditDistance::getIndicatorsByRec(float recLabel) {
+TolerantEditDistance::getIndicatorsByRec(size_t recLabel) {
 
 	return _indicatorVarsByRecLabel[recLabel];
 }
 
 std::vector<unsigned int>&
-TolerantEditDistance::getIndicatorsGtToRec(float gtLabel, float recLabel) {
+TolerantEditDistance::getIndicatorsGtToRec(size_t gtLabel, size_t recLabel) {
 
 	return _indicatorVarsByGtToRecLabel[gtLabel][recLabel];
 }
 
 void
-TolerantEditDistance::assignMatchVariable(unsigned int var, float gtLabel, float recLabel) {
+TolerantEditDistance::assignMatchVariable(unsigned int var, size_t gtLabel, size_t recLabel) {
 
 	LOG_ALL(tedlog) << "adding indicator var " << var << " to match gt label " << gtLabel << " to rec label " << recLabel << std::endl;
 
@@ -558,7 +558,7 @@ TolerantEditDistance::assignMatchVariable(unsigned int var, float gtLabel, float
 }
 
 unsigned int
-TolerantEditDistance::getMatchVariable(float gtLabel, float recLabel) {
+TolerantEditDistance::getMatchVariable(size_t gtLabel, size_t recLabel) {
 
 	return _matchVars[gtLabel][recLabel];
 }

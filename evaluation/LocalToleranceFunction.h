@@ -20,7 +20,7 @@ class LocalToleranceFunction {
 
 public:
 
-	typedef Cell<float>                             cell_t;
+	typedef Cell<size_t>                            cell_t;
 	typedef boost::shared_ptr<std::vector<cell_t> > cells_t;
 
 	LocalToleranceFunction() :
@@ -74,28 +74,28 @@ public:
 	/**
 	 * Get all the ground truth labels.
 	 */
-	std::set<float>& getGroundTruthLabels();
+	std::set<size_t>& getGroundTruthLabels();
 
 	/**
 	 * Get all the reconstruction labels.
 	 */
-	std::set<float>& getReconstructionLabels();
+	std::set<size_t>& getReconstructionLabels();
 
 	/**
 	 * Get all reconstruction labels that might be assigned to a given 
 	 * ground-truth label.
 	 */
-	std::set<float>& getPossibleMatchesByGt(float gtLabel);
+	std::set<size_t>& getPossibleMatchesByGt(size_t gtLabel);
 
 	/**
 	 * Get all ground-truth labels that might be assigned to a given 
 	 * reconstruction label.
 	 */
-	std::set<float>& getPossibleMathesByRec(float recLabel);
+	std::set<size_t>& getPossibleMathesByRec(size_t recLabel);
 
 protected:
 
-	void registerPossibleMatch(float gtLabel, float recLabel);
+	void registerPossibleMatch(size_t gtLabel, size_t recLabel);
 
 	// all extracted cells
 	cells_t _cells;
@@ -108,19 +108,19 @@ protected:
 private:
 
 	// set of all ground truth labels
-	std::set<float> _groundTruthLabels;
+	std::set<size_t> _groundTruthLabels;
 
 	// set of all reconstruction labels
-	std::set<float> _reconstructionLabels;
+	std::set<size_t> _reconstructionLabels;
 
 	// all possible label matchings, from ground truth to reconstruction
-	std::map<float, std::set<float> > _possibleGroundTruthMatches;
+	std::map<size_t, std::set<size_t> > _possibleGroundTruthMatches;
 
 	// all possible label matchings, from reconstruction to ground truth
-	std::map<float, std::set<float> > _possibleReconstructionMatches;
+	std::map<size_t, std::set<size_t> > _possibleReconstructionMatches;
 
 	// map from rec labels to maps from gt label to cell indices
-	std::map<float, std::map<float, std::vector<unsigned int> > > _cellsByRecToGtLabel;
+	std::map<size_t, std::map<size_t, std::vector<unsigned int> > > _cellsByRecToGtLabel;
 };
 
 #endif // TED_EVALUATION_LOCAL_TOLERANCE_FUNCTION_H__

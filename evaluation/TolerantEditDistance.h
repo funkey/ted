@@ -40,22 +40,22 @@ private:
 
 	void correctReconstruction();
 
-	void assignIndicatorVariable(unsigned int var, unsigned int cellIndex, float gtLabel, float recLabel);
+	void assignIndicatorVariable(unsigned int var, unsigned int cellIndex, size_t gtLabel, size_t recLabel);
 
-	std::vector<unsigned int>& getIndicatorsByRec(float recLabel);
+	std::vector<unsigned int>& getIndicatorsByRec(size_t recLabel);
 
-	std::vector<unsigned int>& getIndicatorsGtToRec(float gtLabel, float recLabel);
+	std::vector<unsigned int>& getIndicatorsGtToRec(size_t gtLabel, size_t recLabel);
 
-	void assignMatchVariable(unsigned int var, float gtLabel, float recLabel);
+	void assignMatchVariable(unsigned int var, size_t gtLabel, size_t recLabel);
 
-	unsigned int getMatchVariable(float gtLabel, float recLabel);
+	unsigned int getMatchVariable(size_t gtLabel, size_t recLabel);
 
 	// is there a background label?
 	bool _haveBackgroundLabel;
 
 	// the optional background labels of the ground truth and reconstruction
-	float _gtBackgroundLabel;
-	float _recBackgroundLabel;
+	size_t _gtBackgroundLabel;
+	size_t _recBackgroundLabel;
 
 	pipeline::Input<ImageStack> _groundTruth;
 	pipeline::Input<ImageStack> _reconstruction;
@@ -77,17 +77,17 @@ private:
 	unsigned int _numCells;
 
 	// reconstruction label indicators by reconstruction label
-	std::map<float, std::vector<unsigned int> > _indicatorVarsByRecLabel;
+	std::map<size_t, std::vector<unsigned int> > _indicatorVarsByRecLabel;
 
 	// reconstruction label indicators by groundtruth label x reconstruction 
 	// label
-	std::map<float, std::map<float, std::vector<unsigned int> > > _indicatorVarsByGtToRecLabel;
+	std::map<size_t, std::map<size_t, std::vector<unsigned int> > > _indicatorVarsByGtToRecLabel;
 
 	// (cell index, new label) by indicator variable
-	std::map<unsigned int, std::pair<unsigned int, float> > _labelingByVar;
+	std::map<unsigned int, std::pair<unsigned int, size_t> > _labelingByVar;
 
 	// map from ground truth label x reconstruction label to match variable
-	std::map<float, std::map<float, unsigned int> > _matchVars;
+	std::map<size_t, std::map<size_t, unsigned int> > _matchVars;
 
 	// the number of indicator variables in the ILP
 	unsigned int _numIndicatorVars;

@@ -15,9 +15,9 @@ class TolerantEditDistanceErrors : public Errors {
 
 public:
 
-	typedef Cell<float>                                                cell_t;
-	typedef boost::shared_ptr<std::vector<cell_t> >                    cells_t;
-	typedef std::map<float, std::map<float, std::set<unsigned int> > > cell_map_t;
+	typedef Cell<size_t>                                                 cell_t;
+	typedef boost::shared_ptr<std::vector<cell_t> >                      cells_t;
+	typedef std::map<size_t, std::map<size_t, std::set<unsigned int> > > cell_map_t;
 
 	/**
 	 * Create an empty errors data structure without using a background label, 
@@ -34,7 +34,7 @@ public:
 	 * @param recBackgroundLabel
 	 *             The background label in the reconstruction.
 	 */
-	TolerantEditDistanceErrors(float gtBackgroundLabel, float recBackgroundLabel);
+	TolerantEditDistanceErrors(size_t gtBackgroundLabel, size_t recBackgroundLabel);
 
 	/**
 	 * Set the list of cells this errors data structure is working on. This has 
@@ -62,23 +62,23 @@ public:
 	 * @param recLabel
 	 *             The reconstruction label of the cell.
 	 */
-	void addMapping(unsigned int cellIndex, float recLabel);
+	void addMapping(unsigned int cellIndex, size_t recLabel);
 
 	/**
 	 * Get all reconstruction labels that map to the given ground truth label.
 	 */
-	std::vector<float> getReconstructionLabels(float gtLabel);
+	std::vector<size_t> getReconstructionLabels(size_t gtLabel);
 
 	/**
 	 * Get all ground truth labels that map to the given reconstruction label.
 	 */
-	std::vector<float> getGroundTruthLabels(float recLabel);
+	std::vector<size_t> getGroundTruthLabels(size_t recLabel);
 
 	/**
 	 * Get the number of locations shared by the given ground truth and 
 	 * reconstruction label.
 	 */
-	unsigned int getOverlap(float gtLabel, float recLabel);
+	unsigned int getOverlap(size_t gtLabel, size_t recLabel);
 
 	unsigned int getNumSplits();
 	unsigned int getNumMerges();
@@ -96,44 +96,44 @@ public:
 	/**
 	 * Get all ground truth labels that got split in the reconstruction.
 	 */
-	std::set<float> getSplitLabels();
+	std::set<size_t> getSplitLabels();
 
 	/**
 	 * Get all reconstruction labels that merge multiple ground truh labels.
 	 */
-	std::set<float> getMergeLabels();
+	std::set<size_t> getMergeLabels();
 
 	/**
 	 * Get all reconstruction labels that split the given ground truth label.
 	 */
-	std::set<float> getSplits(float gtLabel);
+	std::set<size_t> getSplits(size_t gtLabel);
 
 	/**
 	 * Get all ground truth labels that the given reconstruction label merges.
 	 */
-	std::set<float> getMerges(float recLabel);
+	std::set<size_t> getMerges(size_t recLabel);
 
 	/**
 	 * Get all reconstruction labels that have no corresponding ground truth 
 	 * label (i.e., map to the ground truth background).
 	 */
-	std::set<float> getFalsePositives();
+	std::set<size_t> getFalsePositives();
 
 	/**
 	 * Get all ground truth labels that have no corresponding reconstruction 
 	 * label (i.e., map to the reconstruction background).
 	 */
-	std::set<float> getFalseNegatives();
+	std::set<size_t> getFalseNegatives();
 
 	/**
 	 * Get all cells that split the given ground truth label.
 	 */
-	const cell_map_t::mapped_type& getSplitCells(float gtLabel);
+	const cell_map_t::mapped_type& getSplitCells(size_t gtLabel);
 
 	/**
 	 * Get all cells that the given reconstruction label merges.
 	 */
-	const cell_map_t::mapped_type& getMergeCells(float recLabel);
+	const cell_map_t::mapped_type& getMergeCells(size_t recLabel);
 
 	/**
 	 * Get all cells that are false positives.
@@ -183,7 +183,7 @@ public:
 
 private:
 
-	void addEntry(cell_map_t& map, float a, float b, unsigned int v);
+	void addEntry(cell_map_t& map, size_t a, size_t b, unsigned int v);
 
 	void updateErrorCounts();
 
@@ -192,7 +192,7 @@ private:
 			cell_map_t&       splits,
 			unsigned int&     numSplits,
 			unsigned int&     numFalsePositives,
-			float             backgroundLabel);
+			size_t             backgroundLabel);
 
 	// a list of cells partitioning the image
 	cells_t _cells;
@@ -212,8 +212,8 @@ private:
 
 	bool _haveBackgroundLabel;
 
-	float _gtBackgroundLabel;
-	float _recBackgroundLabel;
+	size_t _gtBackgroundLabel;
+	size_t _recBackgroundLabel;
 
 	bool _dirty;
 };

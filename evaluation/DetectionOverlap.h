@@ -36,17 +36,17 @@ private:
 
 	void getCenterPoints(
 			const Image&                          image,
-			std::map<float, util::point<float> >& centers,
-			std::set<float>&                      labels,
-			std::map<float, unsigned int>&        sizes);
+			std::map<size_t, util::point<float> >& centers,
+			std::set<size_t>&                      labels,
+			std::map<size_t, unsigned int>&        sizes);
 
 	void getOverlaps(
 			const Image& a,
 			const Image& b,
-			std::set<std::pair<float, float> >& overlapPairs,
-			std::map<std::pair<float, float>, unsigned int>& overlapAreas,
-			std::map<float, std::set<float> >& atob,
-			std::map<float, std::set<float> >& btoa);
+			std::set<std::pair<size_t, size_t> >& overlapPairs,
+			std::map<std::pair<size_t, size_t>, unsigned int>& overlapAreas,
+			std::map<size_t, std::set<size_t> >& atob,
+			std::map<size_t, std::set<size_t> >& btoa);
 
 	// input image stacks
 	pipeline::Input<ImageStack> _stack1;
