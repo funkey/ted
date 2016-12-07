@@ -14,7 +14,7 @@ class PyTed {
 public:
 
 	PyTed() :
-		_reportTed(true),
+		_reportTed(false),
 		_reportRand(true),
 		_reportVoi(true) {
 
@@ -34,9 +34,9 @@ public:
 		pipeline::Value<ImageStack> reconstruction = imageStackFromArray(rec);
 
 		ErrorReport::Parameters parameters;
-		parameters.reportTed = false;
-		parameters.reportRand = true;
-		parameters.reportVoi = true;
+		parameters.reportTed  = _reportTed;
+		parameters.reportRand = _reportRand;
+		parameters.reportVoi  = _reportVoi;
 		parameters.ignoreBackground = true;
 
 		pipeline::Process<ErrorReport> report(parameters);
