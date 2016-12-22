@@ -86,16 +86,11 @@ private:
 		if (array == NULL)
 			UTIL_THROW_EXCEPTION(
 					UsageError,
-					"conversion to array did not work");
+					"only arrays of dimension 2 or 3, with datatype np.uint32 are supported");
 
 		LOG_DEBUG(pytedlog) << "converted to array" << std::endl;
 
 		int dims = PyArray_NDIM(array);
-		if (dims != 2 and dims != 3)
-			UTIL_THROW_EXCEPTION(
-					UsageError,
-					"only arrays of dimensions 2 or 3 are supported.");
-
 		size_t width, height, depth;
 
 		if (dims == 2) {
