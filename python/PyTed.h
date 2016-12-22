@@ -45,14 +45,33 @@ public:
 
 		pipeline::Value<RandIndexErrors> randErrors = report->getOutput("rand errors");
 		pipeline::Value<VariationOfInformationErrors> voiErrors = report->getOutput("voi errors");
+		pipeline::Value<TolerantEditDistanceErrors> tedErrors = report->getOutput("ted errors");
 
-		summary["voi_split"] = voiErrors->getSplitEntropy();
-		summary["voi_merge"] = voiErrors->getMergeEntropy();
-		summary["rand_index"] = randErrors->getRandIndex();
-		summary["rand_precision"] = randErrors->getPrecision();
-		summary["rand_recall"] = randErrors->getRecall();
-		summary["adapted_rand_error"] = randErrors->getAdaptedRandError();
+		if (_reportVoi) {
+
+			summary["voi_split"] = voiErrors->getSplitEntropy();
+			summary["voi_merge"] = voiErrors->getMergeEntropy();
+		}
+
+		if (_reportRand) {
+
+			summary["rand_index"] = randErrors->getRandIndex();
+			summary["rand_precision"] = randErrors->getPrecision();
+			summary["rand_recall"] = randErrors->getRecall();
+			summary["adapted_rand_error"] = randErrors->getAdaptedRandError();
+		}
+
+		if (_reportTed) {
+
+			summary["ted_split"] = tedErrors->getNumSplits();
+			summary["ted_merge"] = tedErrors->getNumMerges();
+			summary["ted_fp"] = tedErrors->getNumFalsePositives();
+			summary["ted_fn"] = tedErrors->getNumFalseNegatives();
+			summary["ted_inference_time"] = tedErrors->getInferenceTime();
+		}
+
 		summary["ted_version"] = std::string(__git_sha1);
+
 		return summary;
 	}
 

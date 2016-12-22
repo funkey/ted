@@ -19,9 +19,15 @@ public:
 
 	std::vector<double>& getVector() { return _solution; }
 
+	void setTime(double time) { _time = time; }
+
+	double getTime() const { return _time; }
+
 private:
 
 	std::vector<double> _solution;
+
+	double _time;
 };
 
 #endif // INFERENCE_SOLUTION_H__

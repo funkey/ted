@@ -496,6 +496,8 @@ TolerantEditDistance::findErrors() {
 						(*(*_fnLocations)[l.z])(l.x, l.y) = cells.first;
 			}
 	}
+
+	_errors->setInferenceTime(_solution->getTime());
 }
 
 void

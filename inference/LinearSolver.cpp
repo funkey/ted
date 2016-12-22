@@ -1,4 +1,5 @@
 #include <boost/timer/timer.hpp>
+#include <boost/chrono.hpp>
 #include <util/Logger.h>
 #include <util/foreach.h>
 #include <util/helpers.hpp>
@@ -148,6 +149,9 @@ LinearSolver::solve() {
 
 	std::string message;
 
+	boost::timer::cpu_timer timer;
+	timer.start();
+
 	if (_solver->solve(*_solution, value, message)) {
 
 		LOG_DEBUG(linearsolverlog) << "optimal solution found" << std::endl;
@@ -156,6 +160,13 @@ LinearSolver::solve() {
 
 		LOG_ERROR(linearsolverlog) << "error: " << message << std::endl;
 	}
+
+	timer.stop();
+
+	boost::chrono::nanoseconds ns(timer.elapsed().system + timer.elapsed().user);
+	double seconds = boost::chrono::duration<double>(ns).count();
+
+	_solution->setTime(seconds);
 
 	LOG_ALL(linearsolverlog) << "solution: " << _solution->getVector() << std::endl;
 }

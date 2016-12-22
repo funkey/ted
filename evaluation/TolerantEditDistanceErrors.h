@@ -181,6 +181,10 @@ public:
 		return ss.str();
 	}
 
+	void setInferenceTime(double time) { _inferenceTime = time; }
+
+	double getInferenceTime() const { return _inferenceTime; }
+
 private:
 
 	void addEntry(cell_map_t& map, size_t a, size_t b, unsigned int v);
@@ -216,6 +220,8 @@ private:
 	size_t _recBackgroundLabel;
 
 	bool _dirty;
+
+	double _inferenceTime;
 };
 
 #endif // TED_EVALUATION_TOLERANT_EDIT_DISTANCE_ERRORS_H__
