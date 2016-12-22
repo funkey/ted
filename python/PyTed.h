@@ -68,6 +68,7 @@ public:
 			summary["ted_fp"] = tedErrors->getNumFalsePositives();
 			summary["ted_fn"] = tedErrors->getNumFalseNegatives();
 			summary["ted_inference_time"] = tedErrors->getInferenceTime();
+			summary["ted_num_variables"] = tedErrors->getNumVariables();
 		}
 
 		summary["ted_version"] = std::string(__git_sha1);

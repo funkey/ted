@@ -185,6 +185,10 @@ public:
 
 	double getInferenceTime() const { return _inferenceTime; }
 
+	void setNumVariables(int num) { _numVariables = num; }
+
+	int getNumVariables() const { return _numVariables; }
+
 private:
 
 	void addEntry(cell_map_t& map, size_t a, size_t b, unsigned int v);
@@ -222,6 +226,8 @@ private:
 	bool _dirty;
 
 	double _inferenceTime;
+
+	int _numVariables;
 };
 
 #endif // TED_EVALUATION_TOLERANT_EDIT_DISTANCE_ERRORS_H__

@@ -498,6 +498,7 @@ TolerantEditDistance::findErrors() {
 	}
 
 	_errors->setInferenceTime(_solution->getTime());
+	_errors->setNumVariables(_solution->size());
 }
 
 void
