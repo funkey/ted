@@ -370,6 +370,7 @@ GurobiBackend::setNumThreads(unsigned int numThreads) {
 
 	GRBenv* modelenv = GRBgetenv(_model);
 	GRB_CHECK(GRBsetintparam(modelenv, GRB_INT_PAR_THREADS, numThreads));
+	LOG_USER(gurobilog) << "using up to " << numThreads << " threads" << std::endl;
 }
 
 void

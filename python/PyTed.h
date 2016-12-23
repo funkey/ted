@@ -4,6 +4,8 @@
 #include <numpy/arrayobject.h>
 
 #include <util/Logger.h>
+#include <util/ProgramOptions.h>
+#include <util/helpers.hpp>
 #include <evaluation/ErrorReport.h>
 #include <git_sha1.h>
 
@@ -16,7 +18,8 @@ public:
 	PyTed() :
 		_reportTed(false),
 		_reportRand(true),
-		_reportVoi(true) {
+		_reportVoi(true),
+		_numThreads(0) {
 
 		LOG_DEBUG(pytedlog) << "[Ted] constructed" << std::endl;
 		initialize();
@@ -26,7 +29,11 @@ public:
 	void reportRand(bool reportRand) { _reportRand = reportRand; }
 	void reportVoi(bool reportVoi)   { _reportVoi  = reportVoi; }
 
+	void setNumThreads(int numThreads) { _numThreads = numThreads; }
+
 	boost::python::dict createReport(PyObject* gt, PyObject* rec) {
+
+		util::ProgramOptions::setOptionValue("numThreads", util::to_string(_numThreads));
 
 		boost::python::dict summary;
 
@@ -145,4 +152,6 @@ private:
 	bool _reportTed;
 	bool _reportRand;
 	bool _reportVoi;
+
+	int _numThreads;
 };

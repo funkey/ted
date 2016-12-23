@@ -81,6 +81,7 @@ BOOST_PYTHON_MODULE(pyted) {
 			.def("report_ted", &PyTed::reportTed)
 			.def("report_rand", &PyTed::reportRand)
 			.def("report_voi", &PyTed::reportVoi)
+			.def("set_num_threads", &PyTed::setNumThreads)
 			.def("create_report", &PyTed::createReport)
 			;
 }
