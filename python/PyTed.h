@@ -50,18 +50,16 @@ public:
 		report->setInput("reconstruction", reconstruction);
 		report->setInput("ground truth", groundTruth);
 
-		pipeline::Value<RandIndexErrors> randErrors = report->getOutput("rand errors");
-		pipeline::Value<VariationOfInformationErrors> voiErrors = report->getOutput("voi errors");
-		pipeline::Value<TolerantEditDistanceErrors> tedErrors = report->getOutput("ted errors");
-
 		if (_reportVoi) {
 
+			pipeline::Value<VariationOfInformationErrors> voiErrors = report->getOutput("voi errors");
 			summary["voi_split"] = voiErrors->getSplitEntropy();
 			summary["voi_merge"] = voiErrors->getMergeEntropy();
 		}
 
 		if (_reportRand) {
 
+			pipeline::Value<RandIndexErrors> randErrors = report->getOutput("rand errors");
 			summary["rand_index"] = randErrors->getRandIndex();
 			summary["rand_precision"] = randErrors->getPrecision();
 			summary["rand_recall"] = randErrors->getRecall();
@@ -70,6 +68,7 @@ public:
 
 		if (_reportTed) {
 
+			pipeline::Value<TolerantEditDistanceErrors> tedErrors = report->getOutput("ted errors");
 			summary["ted_split"] = tedErrors->getNumSplits();
 			summary["ted_merge"] = tedErrors->getNumMerges();
 			summary["ted_fp"] = tedErrors->getNumFalsePositives();
