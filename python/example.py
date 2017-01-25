@@ -1,6 +1,5 @@
 import pyted
 import numpy as np
-import cremi
 
 def create_test_data(background_in_a = True, background_in_b = True, randomized = False):
 
@@ -33,20 +32,9 @@ def test(ba, bb):
 
     (a,b) = create_test_data(background_in_a = ba, background_in_b = bb, randomized = True)
 
-    av = cremi.Volume(a)
-    bv = cremi.Volume(b)
-
-    evaluate = cremi.evaluation.NeuronIds(av)
-    cremi_result_voi = evaluate.voi(bv)
-    cremi_result_rand = evaluate.adapted_rand(bv)
-
     t = pyted.Ted()
     ted_result = t.create_report(a, b)
 
-    print("CREMI:")
-    print("\tvoi split   : " + str(cremi_result_voi[0]))
-    print("\tvoi merge   : " + str(cremi_result_voi[1]))
-    print("\tadapted Rand: " + str(cremi_result_rand))
     print("TED  :")
     print("\tvoi split   : " + str(ted_result['voi_split']))
     print("\tvoi merge   : " + str(ted_result['voi_merge']))
