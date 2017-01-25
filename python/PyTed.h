@@ -15,19 +15,13 @@ class PyTed {
 
 public:
 
-	PyTed() :
-		_reportTed(false),
-		_reportRand(true),
-		_reportVoi(true),
+	PyTed(const ErrorReport::Parameters& parameters = ErrorReport::Parameters()) :
+		_parameters(parameters),
 		_numThreads(0) {
 
 		LOG_DEBUG(pytedlog) << "[Ted] constructed" << std::endl;
 		initialize();
 	}
-
-	void reportTed(bool reportTed)   { _reportTed  = reportTed; }
-	void reportRand(bool reportRand) { _reportRand = reportRand; }
-	void reportVoi(bool reportVoi)   { _reportVoi  = reportVoi; }
 
 	void setNumThreads(int numThreads) { _numThreads = numThreads; }
 
@@ -40,24 +34,18 @@ public:
 		pipeline::Value<ImageStack> groundTruth = imageStackFromArray(gt);
 		pipeline::Value<ImageStack> reconstruction = imageStackFromArray(rec);
 
-		ErrorReport::Parameters parameters;
-		parameters.reportTed  = _reportTed;
-		parameters.reportRand = _reportRand;
-		parameters.reportVoi  = _reportVoi;
-		parameters.ignoreBackground = true;
-
-		pipeline::Process<ErrorReport> report(parameters);
+		pipeline::Process<ErrorReport> report(_parameters);
 		report->setInput("reconstruction", reconstruction);
 		report->setInput("ground truth", groundTruth);
 
-		if (_reportVoi) {
+		if (_parameters.reportVoi) {
 
 			pipeline::Value<VariationOfInformationErrors> voiErrors = report->getOutput("voi errors");
 			summary["voi_split"] = voiErrors->getSplitEntropy();
 			summary["voi_merge"] = voiErrors->getMergeEntropy();
 		}
 
-		if (_reportRand) {
+		if (_parameters.reportRand) {
 
 			pipeline::Value<RandIndexErrors> randErrors = report->getOutput("rand errors");
 			summary["rand_index"] = randErrors->getRandIndex();
@@ -66,7 +54,7 @@ public:
 			summary["adapted_rand_error"] = randErrors->getAdaptedRandError();
 		}
 
-		if (_reportTed) {
+		if (_parameters.reportTed) {
 
 			pipeline::Value<TolerantEditDistanceErrors> tedErrors = report->getOutput("ted errors");
 			summary["ted_split"] = tedErrors->getNumSplits();
@@ -148,9 +136,7 @@ private:
 		a();
 	}
 
-	bool _reportTed;
-	bool _reportRand;
-	bool _reportVoi;
+	ErrorReport::Parameters _parameters;
 
 	int _numThreads;
 };

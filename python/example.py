@@ -3,43 +3,49 @@ import numpy as np
 
 def create_test_data(background_in_a = True, background_in_b = True, randomized = False):
 
+    size = 10
+
     if background_in_a:
-        a = np.zeros((100,100,100), dtype=np.uint32)
+        a = np.zeros((size,size,size), dtype=np.uint32)
     else:
-        a = np.ones((100,100,100), dtype=np.uint32)
+        a = np.ones((size,size,size), dtype=np.uint32)
 
     if background_in_b:
-        b = np.zeros((100,100,100), dtype=np.uint32)
+        b = np.zeros((size,size,size), dtype=np.uint32)
     else:
-        b = np.ones((100,100,100), dtype=np.uint32)
+        b = np.ones((size,size,size), dtype=np.uint32)
 
     if randomized:
-        a += np.array(np.random.rand(100, 100, 100)*3, dtype=np.uint32)
-        b += np.array(np.random.rand(100, 100, 100)*3, dtype=np.uint32)
+        a += np.array(np.random.rand(size, size, size)*3, dtype=np.uint32)
+        b += np.array(np.random.rand(size, size, size)*3, dtype=np.uint32)
     else:
-        a[:,50:100,:] = 2
-        b[25:100,:,:] = 2
+        a[:,size/2:size,:] = 2
+        b[size/4:size,:,:] = 2
 
     return (a,b)
 
 def test(ba, bb):
 
-    print("Testing evaluation")
-    print("==================")
     print
     print("groundtruth    with background: " + str(ba))
     print("reconstruction with background: " + str(bb))
+    print
 
     (a,b) = create_test_data(background_in_a = ba, background_in_b = bb, randomized = True)
 
-    t = pyted.Ted()
-    ted_result = t.create_report(a, b)
+    parameters = pyted.Parameters()
+    parameters.report_ted  = True
+    parameters.report_rand = True
+    parameters.report_voi  = True
+    ted = pyted.Ted(parameters)
+    report = ted.create_report(a, b)
 
-    print("TED  :")
-    print("\tvoi split   : " + str(ted_result['voi_split']))
-    print("\tvoi merge   : " + str(ted_result['voi_merge']))
-    print("\tadapted Rand: " + str(ted_result['adapted_rand_error']))
+    print("TED report:")
+    for (k,v) in report.iteritems():
+        print("\t" + k.ljust(20) + ": " + str(v))
 
-for ba in [True, False]:
-    for bb in [True, False]:
-        test(ba, bb)
+if __name__ == "__main__":
+
+    for ba in [True, False]:
+        for bb in [True, False]:
+            test(ba, bb)

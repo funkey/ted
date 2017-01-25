@@ -77,10 +77,17 @@ BOOST_PYTHON_MODULE(pyted) {
 
 	boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
 
+	boost::python::class_<ErrorReport::Parameters>("Parameters")
+			.def_readwrite("report_ted", &ErrorReport::Parameters::reportTed)
+			.def_readwrite("report_rand", &ErrorReport::Parameters::reportRand)
+			.def_readwrite("report_voi", &ErrorReport::Parameters::reportVoi)
+			.def_readwrite("report_detection_overlap", &ErrorReport::Parameters::reportDetectionOverlap)
+			.def_readwrite("ignore_background", &ErrorReport::Parameters::ignoreBackground)
+			.def_readwrite("grow_slices", &ErrorReport::Parameters::growSlices)
+			;
+
 	boost::python::class_<PyTed>("Ted")
-			.def("report_ted", &PyTed::reportTed)
-			.def("report_rand", &PyTed::reportRand)
-			.def("report_voi", &PyTed::reportVoi)
+			.def(boost::python::init<ErrorReport::Parameters>())
 			.def("set_num_threads", &PyTed::setNumThreads)
 			.def("create_report", &PyTed::createReport)
 			;
