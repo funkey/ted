@@ -362,7 +362,7 @@ GurobiBackend::setTimeout(double timeout) {
 
 	GRBenv* modelenv = GRBgetenv(_model);
 	GRB_CHECK(GRBsetdblparam(modelenv, GRB_DBL_PAR_TIMELIMIT, timeout));
-	LOG_USER(gurobilog) << "using timeout of " << timeout << "s for inference" << std::endl;
+	LOG_DEBUG(gurobilog) << "using timeout of " << timeout << "s for inference" << std::endl;
 }
 
 void
@@ -370,7 +370,7 @@ GurobiBackend::setNumThreads(unsigned int numThreads) {
 
 	GRBenv* modelenv = GRBgetenv(_model);
 	GRB_CHECK(GRBsetintparam(modelenv, GRB_INT_PAR_THREADS, numThreads));
-	LOG_USER(gurobilog) << "using up to " << numThreads << " threads" << std::endl;
+	LOG_DEBUG(gurobilog) << "using up to " << numThreads << " threads" << std::endl;
 }
 
 void
