@@ -38,7 +38,7 @@ def test(ba, bb):
     parameters.report_rand = True
     parameters.report_voi  = True
     ted = pyted.Ted(parameters)
-    report = ted.create_report(a, b)
+    report = ted.create_report(a, b, False, 10.0, 0.0)
 
     print("TED report:")
     for (k,v) in report.iteritems():

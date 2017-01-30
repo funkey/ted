@@ -25,10 +25,16 @@ public:
 
 	void setNumThreads(int numThreads) { _numThreads = numThreads; }
 
-	boost::python::dict createReport(PyObject* gt, PyObject* rec) {
+	boost::python::dict createReport(PyObject* gt, PyObject* rec, const bool gt_from_skeleton, const float distance_threshold, const float background_label = 0.0) {
 
 		util::ProgramOptions::setOptionValue("numThreads", util::to_string(_numThreads));
 
+        if (gt_from_skeleton)
+            util::ProgramOptions::setOptionValue("groundTruthFromSkeletons", util::to_string(1));
+
+        util::ProgramOptions::setOptionValue("maxBoundaryShift", util::to_string(distance_threshold));
+        util::ProgramOptions::setOptionValue("groundTruthBackgroundLabel", util::to_string(background_label));
+ 
 		boost::python::dict summary;
 
 		pipeline::Value<ImageStack> groundTruth = imageStackFromArray(gt);
