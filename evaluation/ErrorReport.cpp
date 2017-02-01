@@ -10,7 +10,7 @@ ErrorReport::ErrorReport(const Parameters& parameters) :
 	_voi(parameters.headerOnly, parameters.ignoreBackground),
 	_rand(parameters.headerOnly, parameters.ignoreBackground),
 	_detectionOverlap(parameters.headerOnly),
-	_ted(parameters.headerOnly),
+	_ted(parameters.headerOnly, parameters.fromSkeleton, parameters.distanceThreshold, parameters.gtBackgroundLabel, parameters.haveBackground, parameters.recBackgroundLabel),
 	_reportAssembler(parameters.headerOnly),
 	_pipelineSetup(false),
 	_parameters(parameters) {
@@ -27,13 +27,6 @@ ErrorReport::ErrorReport(const Parameters& parameters) :
 		registerOutput(_voi->getOutput("errors"), "voi errors");
 	}
 
-    if (parameters.fromSkeleton) {
-        util::ProgramOptions::setOptionValue("groundTruthFromSkeletons", boost::lexical_cast<std::string>(parameters.fromSkeleton));
-    }
-
-    util::ProgramOptions::setOptionValue("maxBoundaryShift", boost::lexical_cast<std::string>(parameters.distanceThreshold));
-
-    util::ProgramOptions::setOptionValue("groundTruthBackgroundLabel", boost::lexical_cast<std::string>(parameters.backgroundLabel));
 
 	if (parameters.reportRand) {
 

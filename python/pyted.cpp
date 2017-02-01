@@ -86,7 +86,9 @@ BOOST_PYTHON_MODULE(pyted) {
 			.def_readwrite("grow_slices", &ErrorReport::Parameters::growSlices)
             .def_readwrite("from_skeleton", &ErrorReport::Parameters::fromSkeleton)
             .def_readwrite("distance_threshold", &ErrorReport::Parameters::distanceThreshold)
-            .def_readwrite("gt_background_label", &ErrorReport::Parameters::backgroundLabel)
+            .def_readwrite("gt_background_label", &ErrorReport::Parameters::gtBackgroundLabel)
+            .def_readwrite("rec_background_label", &ErrorReport::Parameters::recBackgroundLabel)
+            .def_readwrite("have_background", &ErrorReport::Parameters::haveBackground)
 			;
 
 	boost::python::class_<PyTed>("Ted")

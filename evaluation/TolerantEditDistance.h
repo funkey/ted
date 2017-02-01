@@ -20,7 +20,8 @@ public:
 	 *              If set to true, no error will be computed, only the header 
 	 *              information in Errors::errorHeader() will be set.
 	 */
-	TolerantEditDistance(bool headerOnly);
+	TolerantEditDistance(bool headerOnly, bool fromSkeleton = false, unsigned int distanceThreshold = 10, 
+                         float gtBackgroundLabel = 0.0, bool haveBackground = true, float recBackgroundLabel = 0.0);
 
 	~TolerantEditDistance();
 
