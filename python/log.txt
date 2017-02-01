@@ -1,0 +1,76 @@
+
+groundtruth    with background: True
+reconstruction with background: True
+
+NO SKELETON
+TED report:
+	ted_fp              : 0
+	adapted_rand_error  : 0.664634402221
+	ted_merge           : 0
+	ted_num_variables   : 2093
+	ted_split           : 0
+	rand_recall         : 0.335450059064
+	rand_index          : 0.556088088088
+	voi_split           : 1.58073183609
+	ted_inference_time  : 0.19
+	ted_fn              : 0
+	rand_precision      : 0.335281179016
+	voi_merge           : 1.580366588
+	ted_version         : 70eb2ae7976532d0faac451a6e6d08069f60c902
+
+groundtruth    with background: True
+reconstruction with background: False
+
+SKELETON
+TED report:
+	ted_fp              : 1
+	adapted_rand_error  : 0.665093434404
+	ted_merge           : 0
+	ted_num_variables   : 2413
+	ted_split           : 0
+	rand_recall         : 0.334916608193
+	rand_index          : 0.555943943944
+	voi_split           : 1.58165325512
+	ted_inference_time  : 0.18
+	ted_fn              : 0
+	rand_precision      : 0.334896523601
+	voi_merge           : 1.58160751744
+	ted_version         : 70eb2ae7976532d0faac451a6e6d08069f60c902
+
+groundtruth    with background: False
+reconstruction with background: True
+
+SKELETON
+TED report:
+	ted_fp              : 0
+	adapted_rand_error  : 0.662179619755
+	ted_merge           : 0
+	ted_num_variables   : 2117
+	ted_split           : 0
+	rand_recall         : 0.338001727406
+	rand_index          : 0.557715715716
+	voi_split           : 1.57532937761
+	ted_inference_time  : 0.19
+	ted_fn              : 0
+	rand_precision      : 0.337639227575
+	voi_merge           : 1.57456200875
+	ted_version         : 70eb2ae7976532d0faac451a6e6d08069f60c902
+
+groundtruth    with background: False
+reconstruction with background: False
+
+SKELETON
+TED report:
+	ted_fp              : 0
+	adapted_rand_error  : 0.66566205504
+	ted_merge           : 0
+	ted_num_variables   : 2841
+	ted_split           : 1
+	rand_recall         : 0.334767192815
+	rand_index          : 0.555167167167
+	voi_split           : 1.58368720448
+	ted_inference_time  : 0.21
+	ted_fn              : 0
+	rand_precision      : 0.333909796483
+	voi_merge           : 1.58181837501
+	ted_version         : 70eb2ae7976532d0faac451a6e6d08069f60c902

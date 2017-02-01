@@ -81,10 +81,14 @@ TolerantEditDistance::TolerantEditDistance(bool headerOnly) :
 
 	registerOutput(_errors, "errors");
 
-	if (optionGroundTruthFromSkeletons)
+	if (optionGroundTruthFromSkeletons){
 		_toleranceFunction = new SkeletonToleranceFunction(optionToleranceDistanceThreshold.as<float>(), _recBackgroundLabel);
-	else
+        std::cout<<"SKELETON"<<std::endl;
+        }
+	else {
 		_toleranceFunction = new DistanceToleranceFunction(optionToleranceDistanceThreshold.as<float>(), _haveBackgroundLabel, _recBackgroundLabel);
+        std::cout<<"NO SKELETON"<<std::endl;
+        }
 }
 
 TolerantEditDistance::~TolerantEditDistance() {

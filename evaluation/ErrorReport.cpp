@@ -27,6 +27,14 @@ ErrorReport::ErrorReport(const Parameters& parameters) :
 		registerOutput(_voi->getOutput("errors"), "voi errors");
 	}
 
+    if (parameters.fromSkeleton) {
+        util::ProgramOptions::setOptionValue("groundTruthFromSkeletons", boost::lexical_cast<std::string>(parameters.fromSkeleton));
+    }
+
+    util::ProgramOptions::setOptionValue("maxBoundaryShift", boost::lexical_cast<std::string>(parameters.distanceThreshold));
+
+    util::ProgramOptions::setOptionValue("groundTruthBackgroundLabel", boost::lexical_cast<std::string>(parameters.backgroundLabel));
+
 	if (parameters.reportRand) {
 
 		_reportAssembler->addInput("errors", _rand->getOutput("errors"));

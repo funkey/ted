@@ -20,6 +20,9 @@ public:
 			reportTed(true),
 			reportRand(false),
 			reportVoi(false),
+            fromSkeleton(false),
+            distanceThreshold(10),
+            backgroundLabel(0.0),
 			reportDetectionOverlap(false),
 			ignoreBackground(false),
 			growSlices(false) {}
@@ -43,7 +46,27 @@ public:
 		/**
 		 * Compute VOI.
 		 */
+
 		bool reportVoi;
+
+        /**
+         * If set to true the ground truth is assumed
+         * to be a skeleton.
+         */
+
+        bool fromSkeleton;
+
+        /**
+         * Distance tolerance for distance to skeleton.
+         */
+
+        unsigned int distanceThreshold;
+
+        /**
+         * Background label as opposed to skeleton/region label.
+         */
+
+        float backgroundLabel;
 
 		/**
 		 * Compute detection overlap (only for 2D images).

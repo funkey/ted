@@ -37,8 +37,11 @@ def test(ba, bb):
     parameters.report_ted  = True
     parameters.report_rand = True
     parameters.report_voi  = True
+    parameters.from_skeleton = True
+    parameters.distance_threshold = 10
+    parameters.gt_background_label = 0.0
     ted = pyted.Ted(parameters)
-    report = ted.create_report(a, b, False, 10.0, 0.0)
+    report = ted.create_report(a, b)
 
     print("TED report:")
     for (k,v) in report.iteritems():

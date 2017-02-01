@@ -84,6 +84,9 @@ BOOST_PYTHON_MODULE(pyted) {
 			.def_readwrite("report_detection_overlap", &ErrorReport::Parameters::reportDetectionOverlap)
 			.def_readwrite("ignore_background", &ErrorReport::Parameters::ignoreBackground)
 			.def_readwrite("grow_slices", &ErrorReport::Parameters::growSlices)
+            .def_readwrite("from_skeleton", &ErrorReport::Parameters::fromSkeleton)
+            .def_readwrite("distance_threshold", &ErrorReport::Parameters::distanceThreshold)
+            .def_readwrite("gt_background_label", &ErrorReport::Parameters::backgroundLabel)
 			;
 
 	boost::python::class_<PyTed>("Ted")
