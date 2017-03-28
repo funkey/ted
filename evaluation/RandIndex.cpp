@@ -72,18 +72,13 @@ RandIndex::updateOutputs() {
 	 * pixels having the same label in GT and REC, given they have the same 
 	 * label in GT.
 	 *
-	 *   • Here, we call that "recall". Suppose the "elements" we want to 
-	 *     discover are pairs of pixels (x,y) that have the same label. There 
-	 *     are numPairs pairs in total. "selected elements" are numRecSamePairs. 
-	 *     All "relevant elements" are numGtSamePairs. "true positives" are 
-	 *     numBothSamePairs, i.e., all pairs that are relevant and have been 
-	 *     found in the reconstruction.
+	 *   • Here, we call that "precision".
 	 *   • p_ij in the paper is equal numBothSamePairs/numPairs.
 	 *   • t_k in the paper is equal numGtSamePairs/numPairs.
 	 *
 	 * "rand merge" is defined analogously, given same labels in REC.
 	 *
-	 *   • Here, we call that "precision".
+	 *   • Here, we call that "recall".
 	 *   • p_ij in the paper is equal numBothSamePairs/numPairs.
 	 *   • s_k in the paper is equal numRecSamePairs/numPairs.
 	 *
@@ -95,15 +90,25 @@ RandIndex::updateOutputs() {
 	 *
 	 * To obtain the counts, we ignore every pixel that has label 0 in GT, if 
 	 * option ignoreBackground was set.
+	 *
+	 * To compute precision and recall, we suppose the "elements" we want to 
+	 * discover are pairs of pixels (x,y) that have the same label. There are 
+	 * numPairs pairs in total. "selected" are numRecSamePairs. All "relevant" 
+	 * are numGtSamePairs. "tps" are numBothSamePairs, i.e., all pairs that are 
+	 * relevant and have been found in the reconstruction.
 	 */
 
-	double precision = (double)numBothSamePairs/numRecSamePairs;
-	double recall    = (double)numBothSamePairs/numGtSamePairs;
+	uint64_t selected = numRecSamePairs;
+	uint64_t relevant = numGtSamePairs;
+	uint64_t tps      = numBothSamePairs;
+
+	double precision = (double)tps/selected;
+	double recall    = (double)tps/relevant;
 	double fscore    = 2*(precision*recall)/(precision + recall);
 
-	LOG_DEBUG(randindexlog) << "number of TPs is    " << numBothSamePairs << std::endl;
-	LOG_DEBUG(randindexlog) << "number of TPs + FNs " << numGtSamePairs << std::endl;
-	LOG_DEBUG(randindexlog) << "number of TPs + FPs " << numRecSamePairs << std::endl;
+	LOG_DEBUG(randindexlog) << "number of TPs is    " << tps << std::endl;
+	LOG_DEBUG(randindexlog) << "number of TPs + FNs " << relevant << std::endl;
+	LOG_DEBUG(randindexlog) << "number of TPs + FPs " << selected << std::endl;
 	LOG_DEBUG(randindexlog) << "1 - F-score is      " << (1.0 - fscore) << std::endl;
 
 	_errors->setNumPairs(numPairs);
