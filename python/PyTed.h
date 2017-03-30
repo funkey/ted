@@ -113,9 +113,9 @@ private:
 
 		pipeline::Value<ImageStack> stack;
 
-        double res_x = *static_cast<double*>(PyArray_GETPTR1(vs, 0));
+        double res_x = *static_cast<double*>(PyArray_GETPTR1(vs, 2));
         double res_y = *static_cast<double*>(PyArray_GETPTR1(vs, 1));
-        double res_z = *static_cast<double*>(PyArray_GETPTR1(vs, 2));
+        double res_z = *static_cast<double*>(PyArray_GETPTR1(vs, 0));
 
         stack->DiscreteVolume::setResolution(res_x, res_y, res_z);
 

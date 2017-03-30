@@ -43,7 +43,7 @@ def test(ba, bb):
     parameters.rec_background_label = 0.0
     parameters.have_background = True
     ted = pyted.Ted(parameters)
-    report = ted.create_report(a, b)
+    report = ted.create_report(a, b, (40,4,4))
 
     print("TED report:")
     for (k,v) in report.iteritems():
