@@ -11,48 +11,18 @@
 #include <pipeline/Value.h>
 #include <util/exceptions.h>
 #include <util/Logger.h>
-#include <util/ProgramOptions.h>
 #include "TolerantEditDistance.h"
 #include "DistanceToleranceFunction.h"
 #include "SkeletonToleranceFunction.h"
 
 logger::LogChannel tedlog("tedlog", "[TolerantEditDistance] ");
 
-util::ProgramOption optionGroundTruthFromSkeletons(
-		util::_module           = "evaluation",
-		util::_long_name        = "groundTruthFromSkeletons",
-		util::_description_text = "Indicates that the ground-truth consists of skeletons only.");
+TolerantEditDistance::TolerantEditDistance(bool headerOnly, bool fromSkeleton, unsigned int distanceThreshold, 
+                                           float gtBackgroundLabel, bool haveBackground, float recBackgroundLabel) :
 
-util::ProgramOption optionToleranceDistanceThreshold(
-		util::_module           = "evaluation",
-		util::_long_name        = "maxBoundaryShift",
-		util::_description_text = "The maximum allowed distance for a boundary shift in image stack units. The default number of units per voxel is 1.0. "
-		                          "This can be changed by placing a file META in the image stack directory, with the keys 'resX=<..>', "
-		                          "'resY=<...>', and 'resZ=<...>', which give the number of units per edge of a voxel.",
-		util::_default_value    = 10);
-
-util::ProgramOption optionHaveBackgroundLabel(
-		util::_module           = "evaluation",
-		util::_long_name        = "haveBackgroundLabel",
-		util::_description_text = "Indicates that there is a background label with a default value of 0.",
-		util::_default_value    = false);
-
-util::ProgramOption optionGroundTruthBackgroundLabel(
-		util::_module           = "evaluation",
-		util::_long_name        = "groundTruthBackgroundLabel",
-		util::_description_text = "The value of the ground-truth background label.",
-		util::_default_value    = 0.0);
-
-util::ProgramOption optionReconstructionBackgroundLabel(
-		util::_module           = "evaluation",
-		util::_long_name        = "reconstructionBackgroundLabel",
-		util::_description_text = "The value of the reconstruction background label.",
-		util::_default_value    = 0.0);
-
-TolerantEditDistance::TolerantEditDistance(bool headerOnly) :
-	_haveBackgroundLabel(optionHaveBackgroundLabel || optionGroundTruthFromSkeletons),
-	_gtBackgroundLabel(optionGroundTruthBackgroundLabel),
-	_recBackgroundLabel(optionReconstructionBackgroundLabel),
+	_haveBackgroundLabel(haveBackground || fromSkeleton),
+	_gtBackgroundLabel(gtBackgroundLabel),
+	_recBackgroundLabel(recBackgroundLabel),
 	_correctedReconstruction(new ImageStack()),
 	_splitLocations(new ImageStack()),
 	_mergeLocations(new ImageStack()),
@@ -61,7 +31,7 @@ TolerantEditDistance::TolerantEditDistance(bool headerOnly) :
 	_errors(_haveBackgroundLabel ? new TolerantEditDistanceErrors(_gtBackgroundLabel, _recBackgroundLabel) : new TolerantEditDistanceErrors()),
 	_headerOnly(headerOnly) {
 
-	if (optionHaveBackgroundLabel) {
+	if (haveBackground) {
 		LOG_ALL(tedlog) << "started TolerantEditDistance with background label" << std::endl;
 	} else {
 		LOG_ALL(tedlog) << "started TolerantEditDistance without background label" << std::endl;
@@ -81,10 +51,12 @@ TolerantEditDistance::TolerantEditDistance(bool headerOnly) :
 
 	registerOutput(_errors, "errors");
 
-	if (optionGroundTruthFromSkeletons)
-		_toleranceFunction = new SkeletonToleranceFunction(optionToleranceDistanceThreshold.as<float>(), _recBackgroundLabel);
-	else
-		_toleranceFunction = new DistanceToleranceFunction(optionToleranceDistanceThreshold.as<float>(), _haveBackgroundLabel, _recBackgroundLabel);
+	if (fromSkeleton){
+		_toleranceFunction = new SkeletonToleranceFunction(boost::numeric_cast<float>(distanceThreshold), _recBackgroundLabel);
+        }
+	else {
+		_toleranceFunction = new DistanceToleranceFunction(boost::numeric_cast<float>(distanceThreshold), _haveBackgroundLabel, _recBackgroundLabel);
+        }
 }
 
 TolerantEditDistance::~TolerantEditDistance() {

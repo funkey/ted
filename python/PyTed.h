@@ -25,14 +25,14 @@ public:
 
 	void setNumThreads(int numThreads) { _numThreads = numThreads; }
 
-	boost::python::dict createReport(PyObject* gt, PyObject* rec) {
+	boost::python::dict createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size) {
 
 		util::ProgramOptions::setOptionValue("numThreads", util::to_string(_numThreads));
 
 		boost::python::dict summary;
 
-		pipeline::Value<ImageStack> groundTruth = imageStackFromArray(gt);
-		pipeline::Value<ImageStack> reconstruction = imageStackFromArray(rec);
+		pipeline::Value<ImageStack> groundTruth = imageStackFromArray(gt, voxel_size);
+		pipeline::Value<ImageStack> reconstruction = imageStackFromArray(rec, voxel_size);
 
 		pipeline::Process<ErrorReport> report(_parameters);
 		report->setInput("reconstruction", reconstruction);
@@ -72,11 +72,19 @@ public:
 
 private:
 
-	pipeline::Value<ImageStack> imageStackFromArray(PyObject* a) {
+	pipeline::Value<ImageStack> imageStackFromArray(PyObject* a, PyObject* voxel_size) {
 
 		// create (expect?) a C contiguous uint32 array
 		PyArray_Descr* descr = PyArray_DescrFromType(NPY_UINT32);
 		PyArrayObject* array = (PyArrayObject*)(PyArray_FromAny(a, descr, 2, 3, 0, NULL));
+
+        PyArray_Descr* vs_descr = PyArray_DescrFromType(NPY_FLOAT64);
+        PyArrayObject* vs = (PyArrayObject*)(PyArray_FromAny(voxel_size, vs_descr, 1, 1, 0, NULL));
+
+        if (vs == NULL)
+            UTIL_THROW_EXCEPTION(
+					UsageError,
+					"only voxel size arrays of dimension 1, with datatype np.float64 are supported");
 
 		if (array == NULL)
 			UTIL_THROW_EXCEPTION(
@@ -104,6 +112,13 @@ private:
 		LOG_DEBUG(pytedlog) << "copying data..." << std::endl;
 
 		pipeline::Value<ImageStack> stack;
+
+        double res_x = *static_cast<double*>(PyArray_GETPTR1(vs, 0));
+        double res_y = *static_cast<double*>(PyArray_GETPTR1(vs, 1));
+        double res_z = *static_cast<double*>(PyArray_GETPTR1(vs, 2));
+
+        stack->DiscreteVolume::setResolution(res_x, res_y, res_z);
+
 		for (size_t z = 0; z < depth; z++) {
 
 			boost::shared_ptr<Image> image = boost::make_shared<Image>(width, height);
