@@ -1,11 +1,10 @@
 #ifndef TED_EVALUATION_VARIATION_OF_INFORMATION_ERRORS_H__
 #define TED_EVALUATION_VARIATION_OF_INFORMATION_ERRORS_H__
 
-#include "Errors.h"
 #include <sstream>
 #include <iomanip>
 
-class VariationOfInformationErrors : public Errors {
+class VariationOfInformationErrors {
 
 public:
 
@@ -41,28 +40,6 @@ public:
 	 * Get the total entropy, i.e., the variation of information.
 	 */
 	double getEntropy() { return _splitEntropy + _mergeEntropy; }
-
-	std::string errorHeader() { return "VOI_SPLIT\tVOI_MERGE\tVOI"; }
-
-	std::string errorString() {
-
-		std::stringstream ss;
-		ss << std::scientific << std::setprecision(5);
-		ss << getSplitEntropy() << "\t" << getMergeEntropy() << "\t" << getEntropy();
-
-		return ss.str();
-	}
-
-	std::string humanReadableErrorString() {
-
-		std::stringstream ss;
-		ss
-				<< "VOI split: "   << getSplitEntropy()
-				<< ", VOI merge: " << getMergeEntropy()
-				<< ", VOI total: " << getEntropy();
-
-		return ss.str();
-	}
 
 private:
 

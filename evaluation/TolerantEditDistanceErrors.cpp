@@ -78,6 +78,25 @@ TolerantEditDistanceErrors::getGroundTruthLabels(size_t recLabel) {
 	return gtLabels;
 }
 
+std::vector<std::pair<size_t,size_t>>
+TolerantEditDistanceErrors::getMatches() {
+
+	std::vector<std::pair<size_t,size_t>> matches;
+
+	for (auto& p_gt : _cellsByGtToRecLabel) {
+
+		size_t gt_label = p_gt.first;
+
+		for (auto& p_rec : p_gt.second) {
+
+			size_t rec_label = p_rec.first;
+			matches.push_back(std::make_pair(gt_label, rec_label));
+		}
+	}
+
+	return matches;
+}
+
 unsigned int
 TolerantEditDistanceErrors::getOverlap(size_t gtLabel, size_t recLabel) {
 
@@ -275,7 +294,7 @@ TolerantEditDistanceErrors::findSplits(
 		if (partners == 1)
 			continue;
 
-		// remeber the split
+		// remember the split
 		splits[i.first] = i.second;
 
 		// increase count

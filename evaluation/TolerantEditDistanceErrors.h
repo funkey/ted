@@ -2,7 +2,6 @@
 #define TED_EVALUATION_TOLERANT_EDIT_DISTANCE_ERRORS_H__
 
 #include "Cell.h"
-#include "Errors.h"
 
 /**
  * Representation of split and merge (and optionally false positive and false 
@@ -11,7 +10,7 @@
  * reconstruction label. A cell represents a set of image locations and is in 
  * this context the atomic unit to be labelled.
  */
-class TolerantEditDistanceErrors : public Errors {
+class TolerantEditDistanceErrors {
 
 public:
 
@@ -73,6 +72,12 @@ public:
 	 * Get all ground truth labels that map to the given reconstruction label.
 	 */
 	std::vector<size_t> getGroundTruthLabels(size_t recLabel);
+
+	/**
+	 * Get the confusion matrix, i.e., matches between ground truth and 
+	 * reconstruction.
+	 */
+	std::vector<std::pair<size_t,size_t>> getMatches();
 
 	/**
 	 * Get the number of locations shared by the given ground truth and 
@@ -151,35 +156,6 @@ public:
 	 * positives and false negatives.
 	 */
 	bool hasBackgroundLabel() const { return _haveBackgroundLabel; }
-
-	std::string errorHeader() { return "TED_FP\tTED_FN\tTED_FS\tTED_FM\tTED_SUM"; }
-
-	std::string errorString() {
-
-		std::stringstream ss;
-		ss << std::scientific << std::setprecision(5);
-		ss
-				<< getNumFalsePositives() << "\t"
-				<< getNumFalseNegatives() << "\t"
-				<< getNumSplits() << "\t"
-				<< getNumMerges() << "\t"
-				<< getNumErrors();
-
-		return ss.str();
-	}
-
-	std::string humanReadableErrorString() {
-
-		std::stringstream ss;
-		ss
-				<<   "TED FP: " << getNumFalsePositives()
-				<< ", TED FN: " << getNumFalseNegatives()
-				<< ", TED FS: " << getNumSplits()
-				<< ", TED FM: " << getNumMerges()
-				<< ", TED Total: " << getNumErrors();
-
-		return ss.str();
-	}
 
 	void setInferenceTime(double time) { _inferenceTime = time; }
 

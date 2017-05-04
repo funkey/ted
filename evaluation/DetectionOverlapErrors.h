@@ -1,9 +1,7 @@
 #ifndef TED_DETECTION_OVERLAP_ERRORS_H__
 #define TED_DETECTION_OVERLAP_ERRORS_H__
 
-#include "Errors.h"
-
-class DetectionOverlapErrors : public Errors {
+class DetectionOverlapErrors {
 
 public:
 
@@ -148,45 +146,6 @@ public:
 
 		_fps.clear();
 		_fns.clear();
-	}
-
-	std::string errorHeader() { return "DO_FP\tDO_FN\tDO_PRE\tDO_REC\tDO_FS\tDO_MEAN_M1\tDO_STD_M1\tDO_MEAN_M2\tDO_STD_M2\tDO_MEAN_DICE\tDO_STD_DICE"; }
-
-	std::string errorString() {
-
-		std::stringstream ss;
-		ss << std::scientific << std::setprecision(5);
-		ss << _fps.size() << "\t";
-		ss << _fns.size() << "\t";
-		ss << getPrecision() << "\t";
-		ss << getRecall() << "\t";
-		ss << getFScore() << "\t";
-		ss << getMeanM1() << "\t";
-		ss << getStdDevM1() << "\t";
-		ss << getMeanM2() << "\t";
-		ss << getStdDevM2() << "\t";
-		ss << getMeanDice() << "\t";
-		ss << getStdDevDice();
-
-		return ss.str();
-	}
-
-	std::string humanReadableErrorString() {
-
-		std::stringstream ss;
-		ss << "DO_FP: "      << _fps.size() << ", ";
-		ss << "DO_FN: "      << _fns.size() << ", ";
-		ss << "DO_PRE: "     << getPrecision() << ", ";
-		ss << "DO_REC: "     << getRecall() << ", ";
-		ss << "DO_FS: "      << getFScore() << ", ";
-		ss << "DO_MEAN_M1: " << getMeanM1() << ", ";
-		ss << "DO_STD_M1: "  << getStdDevM1() << ", ";
-		ss << "DO_MEAN_M2: " << getMeanM2() << ", ";
-		ss << "DO_STD_M2: "  << getStdDevM2() << ", ";
-		ss << "DO_MEAN_DICE: " << getMeanDice() << ", ";
-		ss << "DO_STD_DICE: "  << getStdDevDice();
-
-		return ss.str();
 	}
 
 private:

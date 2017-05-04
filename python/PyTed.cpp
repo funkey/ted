@@ -64,7 +64,37 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size) {
 				_parameters.gtBackgroundLabel,
 				_parameters.haveBackground,
 				_parameters.recBackgroundLabel);
+
 		TolerantEditDistanceErrors errors = ted.compute(groundTruth, reconstruction);
+
+		boost::python::dict splits;
+		for (size_t split_label : errors.getSplitLabels()) {
+
+			boost::python::list split_into;
+			for (size_t into : errors.getSplits(split_label))
+				split_into.append(into);
+			splits[split_label] = split_into;
+		}
+
+		boost::python::dict merges;
+		for (size_t merge_label : errors.getMergeLabels()) {
+
+			boost::python::list merge_into;
+			for (size_t into : errors.getMerges(merge_label))
+				merge_into.append(into);
+			merges[merge_label] = merge_into;
+		}
+
+		boost::python::list fps;
+		for (size_t l : errors.getFalsePositives())
+			fps.append(l);
+		boost::python::list fns;
+		for (size_t l : errors.getFalseNegatives())
+			fns.append(l);
+
+		boost::python::list matches;
+		for (auto& p : errors.getMatches())
+			matches.append(boost::python::make_tuple(p.first, p.second));
 
 		summary["ted_split"] = errors.getNumSplits();
 		summary["ted_merge"] = errors.getNumMerges();
@@ -72,6 +102,11 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size) {
 		summary["ted_fn"] = errors.getNumFalseNegatives();
 		summary["ted_inference_time"] = errors.getInferenceTime();
 		summary["ted_num_variables"] = errors.getNumVariables();
+		summary["splits"] = splits;
+		summary["merges"] = merges;
+		summary["fps"] = fps;
+		summary["fns"] = fns;
+		summary["matches"] = matches;
 	}
 
 	summary["ted_version"] = std::string(__git_sha1);
