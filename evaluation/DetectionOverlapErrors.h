@@ -87,7 +87,7 @@ public:
 	float getMeanM1() const {
 
 		float sum = 0;
-		foreach (const pair_t& p, _matches)
+		for (const pair_t& p : _matches)
 			sum += getM1(p);
 
 		return sum/_matches.size();
@@ -98,7 +98,7 @@ public:
 		float mean = getMeanM1();
 
 		float sum = 0;
-		foreach (const pair_t& p, _matches)
+		for (const pair_t& p : _matches)
 			sum += pow(mean - getM1(p), 2.0);
 
 		return sqrt(sum/_matches.size());
@@ -107,7 +107,7 @@ public:
 	float getMeanM2() const {
 
 		float sum = 0;
-		foreach (const pair_t& p, _matches)
+		for (const pair_t& p : _matches)
 			sum += getM2(p);
 
 		return sum/_matches.size();
@@ -118,7 +118,7 @@ public:
 		float mean = getMeanM2();
 
 		float sum = 0;
-		foreach (const pair_t& p, _matches)
+		for (const pair_t& p : _matches)
 			sum += pow(mean - getM2(p), 2.0);
 
 		return sqrt(sum/_matches.size());
@@ -127,7 +127,7 @@ public:
 	float getMeanDice() const {
 
 		float sum = 0;
-		foreach (const pair_t& p, _matches)
+		for (const pair_t& p : _matches)
 			sum += getDice(p);
 
 		return sum/_matches.size();
@@ -138,7 +138,7 @@ public:
 		float mean = getMeanDice();
 
 		float sum = 0;
-		foreach (const pair_t& p, _matches)
+		for (const pair_t& p : _matches)
 			sum += pow(mean - getDice(p), 2.0);
 
 		return sqrt(sum/_matches.size());

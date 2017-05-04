@@ -77,22 +77,21 @@ BOOST_PYTHON_MODULE(pyted) {
 
 	boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
 
-	boost::python::class_<ErrorReport::Parameters>("Parameters")
-			.def_readwrite("report_ted", &ErrorReport::Parameters::reportTed)
-			.def_readwrite("report_rand", &ErrorReport::Parameters::reportRand)
-			.def_readwrite("report_voi", &ErrorReport::Parameters::reportVoi)
-			.def_readwrite("report_detection_overlap", &ErrorReport::Parameters::reportDetectionOverlap)
-			.def_readwrite("ignore_background", &ErrorReport::Parameters::ignoreBackground)
-			.def_readwrite("grow_slices", &ErrorReport::Parameters::growSlices)
-            .def_readwrite("from_skeleton", &ErrorReport::Parameters::fromSkeleton)
-            .def_readwrite("distance_threshold", &ErrorReport::Parameters::distanceThreshold)
-            .def_readwrite("gt_background_label", &ErrorReport::Parameters::gtBackgroundLabel)
-            .def_readwrite("rec_background_label", &ErrorReport::Parameters::recBackgroundLabel)
-            .def_readwrite("have_background", &ErrorReport::Parameters::haveBackground)
+	boost::python::class_<PyTed::Parameters>("Parameters")
+			.def_readwrite("report_ted", &PyTed::Parameters::reportTed)
+			.def_readwrite("report_rand", &PyTed::Parameters::reportRand)
+			.def_readwrite("report_voi", &PyTed::Parameters::reportVoi)
+			.def_readwrite("report_detection_overlap", &PyTed::Parameters::reportDetectionOverlap)
+			.def_readwrite("ignore_background", &PyTed::Parameters::ignoreBackground)
+			.def_readwrite("from_skeleton", &PyTed::Parameters::fromSkeleton)
+			.def_readwrite("distance_threshold", &PyTed::Parameters::distanceThreshold)
+			.def_readwrite("gt_background_label", &PyTed::Parameters::gtBackgroundLabel)
+			.def_readwrite("rec_background_label", &PyTed::Parameters::recBackgroundLabel)
+			.def_readwrite("have_background", &PyTed::Parameters::haveBackground)
 			;
 
 	boost::python::class_<PyTed>("Ted")
-			.def(boost::python::init<ErrorReport::Parameters>())
+			.def(boost::python::init<PyTed::Parameters>())
 			.def("set_num_threads", &PyTed::setNumThreads)
 			.def("create_report", &PyTed::createReport)
 			;

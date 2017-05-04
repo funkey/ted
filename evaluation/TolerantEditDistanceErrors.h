@@ -16,7 +16,7 @@ class TolerantEditDistanceErrors : public Errors {
 public:
 
 	typedef Cell<size_t>                                                 cell_t;
-	typedef boost::shared_ptr<std::vector<cell_t> >                      cells_t;
+	typedef std::shared_ptr<std::vector<cell_t> >                        cells_t;
 	typedef std::map<size_t, std::map<size_t, std::set<unsigned int> > > cell_map_t;
 
 	/**

@@ -4,8 +4,7 @@
 #include <vector>
 #include <set>
 #include <map>
-
-#include <boost/shared_ptr.hpp>
+#include <memory>
 
 #include <imageprocessing/ImageStack.h>
 #include "Cell.h"
@@ -20,8 +19,8 @@ class LocalToleranceFunction {
 
 public:
 
-	typedef Cell<size_t>                            cell_t;
-	typedef boost::shared_ptr<std::vector<cell_t> > cells_t;
+	typedef Cell<size_t>                          cell_t;
+	typedef std::shared_ptr<std::vector<cell_t> > cells_t;
 
 	LocalToleranceFunction() :
 		_resolutionX(1.0),

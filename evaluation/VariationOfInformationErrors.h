@@ -3,6 +3,7 @@
 
 #include "Errors.h"
 #include <sstream>
+#include <iomanip>
 
 class VariationOfInformationErrors : public Errors {
 

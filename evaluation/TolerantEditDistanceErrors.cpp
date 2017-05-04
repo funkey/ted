@@ -1,7 +1,6 @@
 #include <boost/timer/timer.hpp>
 #include <boost/range/adaptors.hpp>
 #include <util/exceptions.h>
-#include <util/foreach.h>
 #include <util/Logger.h>
 #include "TolerantEditDistanceErrors.h"
 
@@ -62,8 +61,8 @@ TolerantEditDistanceErrors::getReconstructionLabels(size_t gtLabel) {
 
 	std::vector<size_t> recLabels;
 
-	foreach(size_t recLabel, _cellsByGtToRecLabel[gtLabel] | boost::adaptors::map_keys)
-		recLabels.push_back(recLabel);
+	for (auto& p : _cellsByGtToRecLabel[gtLabel])
+		recLabels.push_back(p.first);
 
 	return recLabels;
 }
@@ -73,8 +72,8 @@ TolerantEditDistanceErrors::getGroundTruthLabels(size_t recLabel) {
 
 	std::vector<size_t> gtLabels;
 
-	foreach(size_t gtLabel, _cellsByRecToGtLabel[recLabel] | boost::adaptors::map_keys)
-		gtLabels.push_back(gtLabel);
+	for (auto& p : _cellsByRecToGtLabel[recLabel])
+		gtLabels.push_back(p.first);
 
 	return gtLabels;
 }
@@ -89,7 +88,7 @@ TolerantEditDistanceErrors::getOverlap(size_t gtLabel, size_t recLabel) {
 		return 0;
 
 	unsigned int overlap = 0;
-	foreach (unsigned int cellIndex, _cellsByGtToRecLabel[gtLabel][recLabel])
+	for (unsigned int cellIndex : _cellsByGtToRecLabel[gtLabel][recLabel])
 		overlap += (*_cells)[cellIndex].size();
 
 	return overlap;
@@ -129,9 +128,9 @@ TolerantEditDistanceErrors::getMergeLabels() {
 	updateErrorCounts();
 
 	std::set<size_t> mergeLabels;
-	foreach (size_t k, _merges | boost::adaptors::map_keys)
-		if (!_haveBackgroundLabel || k != _recBackgroundLabel)
-			mergeLabels.insert(k);
+	for (auto& p : _merges)
+		if (!_haveBackgroundLabel || p.first != _recBackgroundLabel)
+			mergeLabels.insert(p.first);
 	return mergeLabels;
 }
 
@@ -141,9 +140,9 @@ TolerantEditDistanceErrors::getSplitLabels() {
 	updateErrorCounts();
 
 	std::set<size_t> splitLabels;
-	foreach (size_t k, _splits | boost::adaptors::map_keys)
-		if (!_haveBackgroundLabel || k != _gtBackgroundLabel)
-			splitLabels.insert(k);
+	for (auto& p : _splits)
+		if (!_haveBackgroundLabel || p.first != _gtBackgroundLabel)
+			splitLabels.insert(p.first);
 	return splitLabels;
 }
 
@@ -153,7 +152,7 @@ TolerantEditDistanceErrors::getSplits(size_t gtLabel) {
 	std::set<size_t> splitLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
-	foreach (const cells_t& cells, getSplitCells(gtLabel))
+	for (const cells_t& cells : getSplitCells(gtLabel))
 		splitLabels.insert(cells.first);
 
 	return splitLabels;
@@ -165,7 +164,7 @@ TolerantEditDistanceErrors::getMerges(size_t recLabel) {
 	std::set<size_t> mergeLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
-	foreach (const cells_t& cells, getMergeCells(recLabel))
+	for (const cells_t& cells : getMergeCells(recLabel))
 		mergeLabels.insert(cells.first);
 
 	return mergeLabels;
@@ -180,7 +179,7 @@ TolerantEditDistanceErrors::getFalsePositives() {
 	std::set<size_t> splitLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
-	foreach (const cells_t& cells, getSplitCells(_gtBackgroundLabel))
+	for (const cells_t& cells : getSplitCells(_gtBackgroundLabel))
 		if (cells.first != _recBackgroundLabel)
 			splitLabels.insert(cells.first);
 
@@ -196,7 +195,7 @@ TolerantEditDistanceErrors::getFalseNegatives() {
 	std::set<size_t> mergeLabels;
 
 	typedef cell_map_t::mapped_type::value_type cells_t;
-	foreach (const cells_t& cells, getMergeCells(_recBackgroundLabel))
+	for (const cells_t& cells : getMergeCells(_recBackgroundLabel))
 		if (cells.first != _gtBackgroundLabel)
 			mergeLabels.insert(cells.first);
 
@@ -268,7 +267,7 @@ TolerantEditDistanceErrors::findSplits(
 
 	typedef cell_map_t::value_type mapping_t;
 
-	foreach (const mapping_t& i, cellMap) {
+	for (const mapping_t& i : cellMap) {
 
 		unsigned int partners = i.second.size();
 

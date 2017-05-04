@@ -1,63 +1,48 @@
 #include <util/Logger.h>
 #include <util/exceptions.h>
-#include <util/ProgramOptions.h>
 #include "RandIndex.h"
 
 logger::LogChannel randindexlog("randindexlog", "[ResultEvaluator] ");
 
-RandIndex::RandIndex(bool headerOnly, bool ignoreBackground) :
-		_ignoreBackground(ignoreBackground),
-		_headerOnly(headerOnly) {
+RandIndex::RandIndex(bool ignoreBackground) :
+		_ignoreBackground(ignoreBackground) {}
 
-	if (!_headerOnly) {
+RandIndexErrors
+RandIndex::compute(const ImageStack& groundTruth, const ImageStack& reconstruction) {
 
-		registerInput(_reconstruction, "reconstruction");
-		registerInput(_groundTruth, "ground truth");
-	}
+	if (reconstruction.size() != groundTruth.size())
+		UTIL_THROW_EXCEPTION(SizeMismatchError, "image stacks have different size");
 
-	registerOutput(_errors, "errors");
-}
+	unsigned int depth = reconstruction.size();
 
-void
-RandIndex::updateOutputs() {
-
-	if (!_errors)
-		_errors = new RandIndexErrors();
-
-	if (_headerOnly)
-		return;
-
-	if (_reconstruction->size() != _groundTruth->size())
-		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
-
-	unsigned int depth = _reconstruction->size();
+	RandIndexErrors errors;
 
 	if (depth == 0) {
 
 		// rand index of 1 for empty images
-		_errors->setNumPairs(1);
-		_errors->setNumAggreeingPairs(1);
-		return;
+		errors.setNumPairs(1);
+		errors.setNumAggreeingPairs(1);
+		return errors;
 	}
 
-	unsigned int width  = (*_reconstruction)[0]->width();
-	unsigned int height = (*_reconstruction)[0]->height();
+	unsigned int width  = reconstruction[0]->width();
+	unsigned int height = reconstruction[0]->height();
 
 	uint64_t numLocations = depth*width*height;
 
 	if (numLocations == 0) {
 
 		// rand index of 1 for empty images
-		_errors->setNumPairs(1);
-		_errors->setNumAggreeingPairs(1);
-		return;
+		errors.setNumPairs(1);
+		errors.setNumAggreeingPairs(1);
+		return errors;
 	}
 
 	uint64_t numGtSamePairs   = 0;
 	uint64_t numRecSamePairs  = 0;
 	uint64_t numBothSamePairs = 0;
 
-	double numAgree = getNumAgreeingPairs(*_reconstruction, *_groundTruth, numLocations, numGtSamePairs, numRecSamePairs, numBothSamePairs);
+	double numAgree = getNumAgreeingPairs(reconstruction, groundTruth, numLocations, numGtSamePairs, numRecSamePairs, numBothSamePairs);
 	double numPairs = (static_cast<double>(numLocations)/2)*(static_cast<double>(numLocations) - 1);
 
 	LOG_DEBUG(randindexlog) << "number of pairs is          " << numPairs << std::endl;;
@@ -111,11 +96,13 @@ RandIndex::updateOutputs() {
 	LOG_DEBUG(randindexlog) << "number of TPs + FPs " << selected << std::endl;
 	LOG_DEBUG(randindexlog) << "1 - F-score is      " << (1.0 - fscore) << std::endl;
 
-	_errors->setNumPairs(numPairs);
-	_errors->setNumAggreeingPairs(numAgree);
-	_errors->setPrecision(precision);
-	_errors->setRecall(recall);
-	_errors->setAdaptedRandError(1.0 - fscore);
+	errors.setNumPairs(numPairs);
+	errors.setNumAggreeingPairs(numAgree);
+	errors.setPrecision(precision);
+	errors.setRecall(recall);
+	errors.setAdaptedRandError(1.0 - fscore);
+
+	return errors;
 }
 
 uint64_t
@@ -173,20 +160,29 @@ RandIndex::getNumAgreeingPairs(
 	numSameComponentPairs1 = 0;
 	numSameComponentPairs2 = 0;
 
-	foreach (boost::tie(labelPair, n), c) {
+	for (auto& p : c) {
+
+		labelPair = p.first;
+		n = p.second;
 
 		A += n*(n-1);
 		B += n*n;
 		numSameComponentPairs12 += n*n;
 	}
 
-	foreach (boost::tie(label, n), a) {
+	for (auto& p : a) {
+
+		label = p.first;
+		n = p.second;
 
 		B -= n*n;
 		numSameComponentPairs1 += n*n;
 	}
 
-	foreach (boost::tie(label, n), b) {
+	for (auto& p : b) {
+
+		label = p.first;
+		n = p.second;
 
 		B -= n*n;
 		numSameComponentPairs2 += n*n;

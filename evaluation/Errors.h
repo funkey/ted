@@ -2,12 +2,11 @@
 #define TED_EVALUATION_ERRORS_H__
 
 #include <string>
-#include <pipeline/Data.h>
 
 /**
  * Base class for error data structures.
  */
-class Errors : public pipeline::Data {
+class Errors {
 
 public:
 

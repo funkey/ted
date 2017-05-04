@@ -5,7 +5,7 @@ LocalToleranceFunction::clear() {
 
 	_groundTruthLabels.clear();
 	_reconstructionLabels.clear();
-	_cells = boost::make_shared<std::vector<cell_t> >();
+	_cells = std::make_shared<std::vector<cell_t> >();
 	_possibleGroundTruthMatches.clear();
 	_possibleReconstructionMatches.clear();
 	_cellsByRecToGtLabel.clear();

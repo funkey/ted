@@ -2,42 +2,37 @@
 #define TED_EVALUATION_TOLERANT_EDIT_DISTANCE_H__
 
 #include <imageprocessing/ImageStack.h>
-#include <pipeline/SimpleProcessNode.h>
-#include <pipeline/Value.h>
 #include <inference/Solution.h>
 #include "LocalToleranceFunction.h"
 #include "TolerantEditDistanceErrors.h"
 #include "Cell.h"
 
-class TolerantEditDistance : public pipeline::SimpleProcessNode<> {
+class TolerantEditDistance {
 
 public:
 
-	/**
-	 * Create a new evaluator.
-	 *
-	 * @param headerOnly
-	 *              If set to true, no error will be computed, only the header 
-	 *              information in Errors::errorHeader() will be set.
-	 */
-	TolerantEditDistance(bool headerOnly, bool fromSkeleton = false, unsigned int distanceThreshold = 10, 
-                         float gtBackgroundLabel = 0.0, bool haveBackground = true, float recBackgroundLabel = 0.0);
+	TolerantEditDistance(
+			bool fromSkeleton = false,
+			unsigned int distanceThreshold = 10,
+			float gtBackgroundLabel = 0.0,
+			bool haveBackground = true,
+			float recBackgroundLabel = 0.0);
 
 	~TolerantEditDistance();
+
+	TolerantEditDistanceErrors compute(const ImageStack& groundTruth, const ImageStack& reconstruction);
 
 private:
 
 	typedef LocalToleranceFunction::cell_t cell_t;
 
-	void updateOutputs();
-
 	void clear();
 
-	void extractCells();
+	void extractCells(const ImageStack& groundTruth, const ImageStack& reconstruction);
 
 	void findBestCellLabels();
 
-	void findErrors();
+	TolerantEditDistanceErrors findErrors();
 
 	void correctReconstruction();
 
@@ -58,15 +53,11 @@ private:
 	size_t _gtBackgroundLabel;
 	size_t _recBackgroundLabel;
 
-	pipeline::Input<ImageStack> _groundTruth;
-	pipeline::Input<ImageStack> _reconstruction;
-
-	pipeline::Output<ImageStack> _correctedReconstruction;
-	pipeline::Output<ImageStack> _splitLocations;
-	pipeline::Output<ImageStack> _mergeLocations;
-	pipeline::Output<ImageStack> _fpLocations;
-	pipeline::Output<ImageStack> _fnLocations;
-	pipeline::Output<TolerantEditDistanceErrors> _errors;
+	ImageStack _correctedReconstruction;
+	ImageStack _splitLocations;
+	ImageStack _mergeLocations;
+	ImageStack _fpLocations;
+	ImageStack _fnLocations;
 
 	// the local tolerance function to use
 	LocalToleranceFunction* _toleranceFunction;
@@ -101,9 +92,7 @@ private:
 	unsigned int _merges;
 
 	// the solution of the ILP
-	pipeline::Value<Solution> _solution;
-
-	bool _headerOnly;
+	Solution _solution;
 };
 
 #endif // TED_EVALUATION_TOLERANT_EDIT_DISTANCE_H__

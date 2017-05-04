@@ -1,34 +1,19 @@
-#include <pipeline/Value.h>
 #include <inference/LinearConstraints.h>
 #include <inference/LinearObjective.h>
-#include <inference/LinearSolver.h>
+#include <inference/LinearSolverBackend.h>
+#include <inference/SolverFactory.h>
+#include <inference/Solution.h>
 #include <util/Logger.h>
 #include "DetectionOverlap.h"
 
 logger::LogChannel detectionoverlaplog("detectionoverlaplog", "[DetectionOverlap] ");
 
-DetectionOverlap::DetectionOverlap(bool headerOnly) :
-		_headerOnly(headerOnly) {
+DetectionOverlapErrors
+DetectionOverlap::compute(const ImageStack& groundTruth, const ImageStack& reconstruction) {
 
-	if (!_headerOnly) {
+	DetectionOverlapErrors errors;
 
-		registerInput(_stack1, "stack 1");
-		registerInput(_stack2, "stack 2");
-	}
-
-	registerOutput(_errors, "errors");
-}
-
-void
-DetectionOverlap::updateOutputs() {
-
-	if (!_errors)
-		_errors = new DetectionOverlapErrors();
-
-	if (_headerOnly)
-		return;
-
-	if (_stack1->size() != 1 || _stack2->size() != 1)
+	if (groundTruth.size() != 1 || reconstruction.size() != 1)
 		UTIL_THROW_EXCEPTION(
 				UsageError,
 				"The DetectionOverlap loss only accepts single 2D images");
@@ -42,8 +27,8 @@ DetectionOverlap::updateOutputs() {
 	std::map<size_t, unsigned int> gtSizes;
 	std::map<size_t, unsigned int> recSizes;
 
-	getCenterPoints(*(*_stack1)[0], gtCenters, gtLabels, gtSizes);
-	getCenterPoints(*(*_stack2)[0], recCenters, recLabels, recSizes);
+	getCenterPoints(*groundTruth[0], gtCenters, gtLabels, gtSizes);
+	getCenterPoints(*reconstruction[0], recCenters, recLabels, recSizes);
 
 	LOG_DEBUG(detectionoverlaplog) << "there are " << gtCenters.size() << " ground truth regions" << std::endl;
 	LOG_DEBUG(detectionoverlaplog) << "there are " << recCenters.size() << " reconstruction regions" << std::endl;
@@ -54,8 +39,8 @@ DetectionOverlap::updateOutputs() {
 	std::map<size_t, std::set<size_t> > recToGtOverlaps;
 
 	getOverlaps(
-			*(*_stack1)[0],
-			*(*_stack2)[0],
+			*groundTruth[0],
+			*reconstruction[0],
 			overlapPairs,
 			overlapAreas,
 			gtToRecOverlaps,
@@ -68,7 +53,7 @@ DetectionOverlap::updateOutputs() {
 	// get a score for each possible overlap
 	std::map<pair_t, float> matchingScore;
 	float maxScore = 0;
-	foreach (const pair_t& p, overlapPairs) {
+	for (const pair_t& p : overlapPairs) {
 
 		util::point<float> gtCenter  = gtCenters[p.first];
 		util::point<float> recCenter = recCenters[p.second];
@@ -88,7 +73,7 @@ DetectionOverlap::updateOutputs() {
 
 	// to select as many matches as possible but still minimize center distance, 
 	// make score negative by subtracting largest distance
-	foreach (const pair_t& p, overlapPairs)
+	for (const pair_t& p : overlapPairs)
 		matchingScore[p] -= maxScore*1.1; // a little more to make every score negative
 
 	// map pairs to variable numbers
@@ -96,7 +81,7 @@ DetectionOverlap::updateOutputs() {
 	std::map<unsigned int, pair_t> variableToPair;
 
 	unsigned int varNum = 0;
-	foreach (const pair_t& p, overlapPairs) {
+	for (const pair_t& p : overlapPairs) {
 
 		pairToVariable[p] = varNum;
 		variableToPair[varNum] = p;
@@ -112,11 +97,11 @@ DetectionOverlap::updateOutputs() {
 	//     sum of pair indicators ≤ 1
 	// (analogously for other direction)
 
-	pipeline::Value<LinearConstraints> constraints;
-	foreach (size_t recLabel, recLabels) {
+	LinearConstraints constraints;
+	for (size_t recLabel : recLabels) {
 
 		LinearConstraint constraint;
-		foreach (size_t gtLabel, recToGtOverlaps[recLabel]) {
+		for (size_t gtLabel : recToGtOverlaps[recLabel]) {
 
 			unsigned int varNum = pairToVariable[std::make_pair(gtLabel, recLabel)];
 			constraint.setCoefficient(varNum, 1.0);
@@ -125,13 +110,13 @@ DetectionOverlap::updateOutputs() {
 		constraint.setRelation(LessEqual);
 		constraint.setValue(1.0);
 
-		constraints->add(constraint);
+		constraints.add(constraint);
 	}
 
-	foreach (size_t gtLabel, gtLabels) {
+	for (size_t gtLabel : gtLabels) {
 
 		LinearConstraint constraint;
-		foreach (size_t recLabel, gtToRecOverlaps[gtLabel]) {
+		for (size_t recLabel : gtToRecOverlaps[gtLabel]) {
 
 			unsigned int varNum = pairToVariable[std::make_pair(gtLabel, recLabel)];
 			constraint.setCoefficient(varNum, 1.0);
@@ -140,30 +125,33 @@ DetectionOverlap::updateOutputs() {
 		constraint.setRelation(LessEqual);
 		constraint.setValue(1.0);
 
-		constraints->add(constraint);
+		constraints.add(constraint);
 	}
 
 	// build objective
-	pipeline::Value<LinearObjective> objective(overlapPairs.size());
-	foreach (const pair_t& p, overlapPairs) {
+	LinearObjective objective(overlapPairs.size());
+	for (const pair_t& p : overlapPairs) {
 
 		unsigned int varNum = pairToVariable[p];
 		float        score  = matchingScore[p];
 
-		objective->setCoefficient(varNum, score);
+		objective.setCoefficient(varNum, score);
 	}
 
 	// solve
 
-	pipeline::Process<LinearSolver> solver;
-	pipeline::Value<LinearSolverParameters> parameters;
-	parameters->setVariableType(Binary);
+	SolverFactory factory;
+	// TODO: use std::unique_ptr
+	LinearSolverBackend* solver = factory.createLinearSolverBackend();
+	solver->initialize(overlapPairs.size(), Binary);
 
-	solver->setInput("objective", objective);
-	solver->setInput("linear constraints", constraints);
-	solver->setInput("parameters", parameters);
+	solver->setObjective(objective);
+	solver->setConstraints(constraints);
 
-	pipeline::Value<Solution> solution = solver->getOutput("solution");
+	std::string msg;
+	Solution solution;
+	solver->solve(solution, msg);
+	delete solver;
 
 	// get the optimal matching
 
@@ -175,9 +163,9 @@ DetectionOverlap::updateOutputs() {
 		LOG_ALL(detectionoverlaplog)
 				<< "ILP solution for pair " << variableToPair[varNum].first
 				<< ", " << variableToPair[varNum].second
-				<< " = " << (*solution)[varNum] << std::endl;
+				<< " = " << solution[varNum] << std::endl;
 
-		if ((*solution)[varNum] == 1) {
+		if (solution[varNum] == 1) {
 
 			pair_t match = variableToPair[varNum];
 
@@ -194,15 +182,15 @@ DetectionOverlap::updateOutputs() {
 
 	// get FP and FN
 
-	foreach (size_t gtLabel, gtLabels)
+	for (size_t gtLabel : gtLabels)
 		if (gtToRecMatches.count(gtLabel) == 0)
-			_errors->addFalseNegative(gtLabel);
-	foreach (size_t recLabel, recLabels)
+			errors.addFalseNegative(gtLabel);
+	for (size_t recLabel : recLabels)
 		if (recToGtMatches.count(recLabel) == 0)
-			_errors->addFalsePositive(recLabel);
+			errors.addFalsePositive(recLabel);
 
 	// for each match, get area overlap measures
-	foreach (const pair_t& p, matches) {
+	for (const pair_t& p : matches) {
 
 		// M1 = (R_rec ∩ R_gt)/(R_rec ∪ R_gt)*100
 		// M2 = (R_rec ∩ R_gt)/R_gt*100
@@ -221,8 +209,10 @@ DetectionOverlap::updateOutputs() {
 				<< ", M2 = " << m2
 				<< std::endl;
 
-		_errors->addMatch(p, m1, m2, dice);
+		errors.addMatch(p, m1, m2, dice);
 	}
+
+	return errors;
 }
 
 void
@@ -254,7 +244,7 @@ DetectionOverlap::getCenterPoints(
 			labels.insert(label);
 		}
 
-	foreach (size_t label, labels)
+	for (size_t label : labels)
 		centers[label] /= sizes[label];
 }
 

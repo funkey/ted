@@ -7,8 +7,9 @@
 
 #include <inference/LinearConstraints.h>
 #include <inference/LinearObjective.h>
-#include <inference/LinearSolver.h>
-#include <pipeline/Value.h>
+#include <inference/LinearSolverBackend.h>
+#include <inference/SolverFactory.h>
+#include <inference/Solution.h>
 #include <util/exceptions.h>
 #include <util/Logger.h>
 #include "TolerantEditDistance.h"
@@ -17,68 +18,48 @@
 
 logger::LogChannel tedlog("tedlog", "[TolerantEditDistance] ");
 
-TolerantEditDistance::TolerantEditDistance(bool headerOnly, bool fromSkeleton, unsigned int distanceThreshold, 
-                                           float gtBackgroundLabel, bool haveBackground, float recBackgroundLabel) :
+TolerantEditDistance::TolerantEditDistance(
+		bool fromSkeleton,
+		unsigned int distanceThreshold,
+		float gtBackgroundLabel,
+		bool haveBackground,
+		float recBackgroundLabel) :
 
 	_haveBackgroundLabel(haveBackground || fromSkeleton),
 	_gtBackgroundLabel(gtBackgroundLabel),
-	_recBackgroundLabel(recBackgroundLabel),
-	_correctedReconstruction(new ImageStack()),
-	_splitLocations(new ImageStack()),
-	_mergeLocations(new ImageStack()),
-	_fpLocations(new ImageStack()),
-	_fnLocations(new ImageStack()),
-	_errors(_haveBackgroundLabel ? new TolerantEditDistanceErrors(_gtBackgroundLabel, _recBackgroundLabel) : new TolerantEditDistanceErrors()),
-	_headerOnly(headerOnly) {
+	_recBackgroundLabel(recBackgroundLabel) {
 
-	if (haveBackground) {
-		LOG_ALL(tedlog) << "started TolerantEditDistance with background label" << std::endl;
+	if (_haveBackgroundLabel) {
+		LOG_ALL(tedlog) << "created TolerantEditDistance with background label" << std::endl;
 	} else {
-		LOG_ALL(tedlog) << "started TolerantEditDistance without background label" << std::endl;
+		LOG_ALL(tedlog) << "created TolerantEditDistance without background label" << std::endl;
 	}
-
-	if (!_headerOnly) {
-
-		registerInput(_groundTruth, "ground truth");
-		registerInput(_reconstruction, "reconstruction");
-
-		registerOutput(_correctedReconstruction, "corrected reconstruction");
-		registerOutput(_splitLocations, "splits");
-		registerOutput(_mergeLocations, "merges");
-		registerOutput(_fpLocations, "false positives");
-		registerOutput(_fnLocations, "false negatives");
-	}
-
-	registerOutput(_errors, "errors");
 
 	if (fromSkeleton){
-		_toleranceFunction = new SkeletonToleranceFunction(boost::numeric_cast<float>(distanceThreshold), _recBackgroundLabel);
-        }
-	else {
-		_toleranceFunction = new DistanceToleranceFunction(boost::numeric_cast<float>(distanceThreshold), _haveBackgroundLabel, _recBackgroundLabel);
-        }
+		_toleranceFunction = new SkeletonToleranceFunction(distanceThreshold, _recBackgroundLabel);
+	} else {
+		_toleranceFunction = new DistanceToleranceFunction(distanceThreshold, _haveBackgroundLabel, _recBackgroundLabel);
+	}
 }
 
 TolerantEditDistance::~TolerantEditDistance() {
 
+	// TODO: use std::unique_ptr
 	delete _toleranceFunction;
 }
 
-void
-TolerantEditDistance::updateOutputs() {
-
-	if (_headerOnly)
-		return;
+TolerantEditDistanceErrors
+TolerantEditDistance::compute(const ImageStack& groundTruth, const ImageStack& reconstruction) {
 
 	clear();
 
-	extractCells();
+	extractCells(groundTruth, reconstruction);
 
 	findBestCellLabels();
 
 	correctReconstruction();
 
-	findErrors();
+	return findErrors();
 }
 
 void
@@ -90,40 +71,39 @@ TolerantEditDistance::clear() {
 	_matchVars.clear();
 	_labelingByVar.clear();
 	_alternativeIndicators.clear();
-	_errors->clear();
-	_correctedReconstruction->clear();
-	_splitLocations->clear();
-	_mergeLocations->clear();
-	_fpLocations->clear();
-	_fnLocations->clear();
+	_correctedReconstruction.clear();
+	_splitLocations.clear();
+	_mergeLocations.clear();
+	_fpLocations.clear();
+	_fnLocations.clear();
 }
 
 void
-TolerantEditDistance::extractCells() {
+TolerantEditDistance::extractCells(const ImageStack& groundTruth, const ImageStack& reconstruction) {
 
 	//boost::timer::auto_cpu_timer timer(std::cout, "\textractCells():\t\t\t\t%ws\n");
 
-	if (_groundTruth->size() != _reconstruction->size())
+	if (groundTruth.size() != reconstruction.size())
 		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("ground truth and reconstruction have different size") << STACK_TRACE);
 
-	if (_groundTruth->height() != _reconstruction->height() || _groundTruth->width() != _reconstruction->width())
+	if (groundTruth.height() != reconstruction.height() || groundTruth.width() != reconstruction.width())
 		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("ground truth and reconstruction have different size") << STACK_TRACE);
 
-	_depth  = _groundTruth->size();
-	_width  = _groundTruth->width();
-	_height = _groundTruth->height();
+	_depth  = groundTruth.size();
+	_width  = groundTruth.width();
+	_height = groundTruth.height();
 
 	LOG_ALL(tedlog) << "extracting cells in " << _width << "x" << _height << "x" << _depth << " volume" << std::endl;
 
 	vigra::MultiArray<3, std::pair<size_t, size_t> > gtAndRec(vigra::Shape3(_width, _height, _depth));
-	vigra::MultiArray<3, unsigned int>             cellIds(vigra::Shape3(_width, _height, _depth));
+	vigra::MultiArray<3, unsigned int>               cellIds(vigra::Shape3(_width, _height, _depth));
 
 	// prepare gt and rec image
 
 	for (unsigned int z = 0; z < _depth; z++) {
 
-		boost::shared_ptr<Image> gt  = (*_groundTruth)[z];
-		boost::shared_ptr<Image> rec = (*_reconstruction)[z];
+		std::shared_ptr<const Image> gt  = groundTruth[z];
+		std::shared_ptr<const Image> rec = reconstruction[z];
 
 		for (unsigned int x = 0; x < _width; x++)
 			for (unsigned int y = 0; y < _height; y++) {
@@ -142,16 +122,16 @@ TolerantEditDistance::extractCells() {
 	LOG_DEBUG(tedlog) << "found " << _numCells << " cells" << std::endl;
 
 	_toleranceFunction->setResolution(
-			_reconstruction->getResolutionX(),
-			_reconstruction->getResolutionY(),
-			_reconstruction->getResolutionZ());
+			reconstruction.getResolutionX(),
+			reconstruction.getResolutionY(),
+			reconstruction.getResolutionZ());
 
 	// let tolerance function extract cells from that
 	_toleranceFunction->extractCells(
 			_numCells,
 			cellIds,
-			*_reconstruction,
-			*_groundTruth);
+			reconstruction,
+			groundTruth);
 
 	LOG_ALL(tedlog)
 			<< "found "
@@ -167,11 +147,10 @@ TolerantEditDistance::findBestCellLabels() {
 
 	//boost::timer::auto_cpu_timer timer(std::cout, "\tfindBestCellLabels():\t\t\t%ws\n");
 
-	pipeline::Value<LinearConstraints>      constraints;
-	pipeline::Value<LinearSolverParameters> parameters;
+	LinearConstraints constraints;
 
 	// the default are binary variables
-	parameters->setVariableType(Binary);
+	std::map<unsigned int, VariableType> specialVariableTypes;
 
 	// introduce indicators for each cell and each possible label of that cell
 	unsigned int var = 0;
@@ -186,7 +165,7 @@ TolerantEditDistance::findBestCellLabels() {
 		assignIndicatorVariable(var++, cellIndex, cell.getGroundTruthLabel(), cell.getReconstructionLabel());
 
 		// one variable for each alternative
-		foreach (size_t l, cell.getAlternativeLabels()) {
+		for (size_t l : cell.getAlternativeLabels()) {
 
 			unsigned int ind = var++;
 			_alternativeIndicators.push_back(std::make_pair(ind, cell.size()));
@@ -202,7 +181,7 @@ TolerantEditDistance::findBestCellLabels() {
 			constraint.setCoefficient(i, 1.0);
 		constraint.setRelation(Equal);
 		constraint.setValue(1);
-		constraints->add(constraint);
+		constraints.add(constraint);
 
 		LOG_ALL(tedlog) << constraint << std::endl;
 	}
@@ -211,34 +190,34 @@ TolerantEditDistance::findBestCellLabels() {
 	LOG_ALL(tedlog) << "adding constraints to ensure that rec labels don't disappear" << std::endl;
 
 	// labels can not disappear
-	foreach (size_t recLabel, _toleranceFunction->getReconstructionLabels()) {
+	for (size_t recLabel : _toleranceFunction->getReconstructionLabels()) {
 
 		LinearConstraint constraint;
-		foreach (unsigned int v, getIndicatorsByRec(recLabel))
+		for (unsigned int v : getIndicatorsByRec(recLabel))
 			constraint.setCoefficient(v, 1.0);
 		constraint.setRelation(GreaterEqual);
 		constraint.setValue(1);
-		constraints->add(constraint);
+		constraints.add(constraint);
 
 		LOG_ALL(tedlog) << constraint << std::endl;
 	}
 
 	// introduce indicators for each match of ground truth label to 
 	// reconstruction label
-	foreach (size_t gtLabel, _toleranceFunction->getGroundTruthLabels())
-		foreach (size_t recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel))
+	for (size_t gtLabel : _toleranceFunction->getGroundTruthLabels())
+		for (size_t recLabel : _toleranceFunction->getPossibleMatchesByGt(gtLabel))
 			assignMatchVariable(var++, gtLabel, recLabel);
 
 	// cell label selection activates match
-	foreach (size_t gtLabel, _toleranceFunction->getGroundTruthLabels()) {
-		foreach (size_t recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel)) {
+	for (size_t gtLabel : _toleranceFunction->getGroundTruthLabels()) {
+		for (size_t recLabel : _toleranceFunction->getPossibleMatchesByGt(gtLabel)) {
 
 			unsigned int matchVar = getMatchVariable(gtLabel, recLabel);
 
 			// no assignment of gtLabel to recLabel -> match is zero
 			LinearConstraint noMatchConstraint;
 
-			foreach (unsigned int v, getIndicatorsGtToRec(gtLabel, recLabel)) {
+			for (unsigned int v : getIndicatorsGtToRec(gtLabel, recLabel)) {
 
 				noMatchConstraint.setCoefficient(v, 1);
 
@@ -249,7 +228,7 @@ TolerantEditDistance::findBestCellLabels() {
 				matchConstraint.setCoefficient(v, -1);
 				matchConstraint.setRelation(GreaterEqual);
 				matchConstraint.setValue(0);
-				constraints->add(matchConstraint);
+				constraints.add(matchConstraint);
 
 				LOG_ALL(tedlog) << matchConstraint << std::endl;
 			}
@@ -257,7 +236,7 @@ TolerantEditDistance::findBestCellLabels() {
 			noMatchConstraint.setCoefficient(matchVar, -1);
 			noMatchConstraint.setRelation(GreaterEqual);
 			noMatchConstraint.setValue(0);
-			constraints->add(noMatchConstraint);
+			constraints.add(noMatchConstraint);
 
 			LOG_ALL(tedlog) << noMatchConstraint << std::endl;
 		}
@@ -267,27 +246,27 @@ TolerantEditDistance::findBestCellLabels() {
 
 	unsigned int splitBegin = var;
 
-	foreach (size_t gtLabel, _toleranceFunction->getGroundTruthLabels()) {
+	for (size_t gtLabel : _toleranceFunction->getGroundTruthLabels()) {
 
 		unsigned int splitVar = var++;
 
 		LOG_ALL(tedlog) << "adding split var " << splitVar << " for gt label " << gtLabel << std::endl;
 
-		parameters->setVariableType(splitVar, Integer);
+		specialVariableTypes[splitVar] = Integer;
 
 		LinearConstraint positive;
 		positive.setCoefficient(splitVar, 1);
 		positive.setRelation(GreaterEqual);
 		positive.setValue(0);
-		constraints->add(positive);
+		constraints.add(positive);
 
 		LinearConstraint numSplits;
 		numSplits.setCoefficient(splitVar, 1);
-		foreach (size_t recLabel, _toleranceFunction->getPossibleMatchesByGt(gtLabel))
+		for (size_t recLabel : _toleranceFunction->getPossibleMatchesByGt(gtLabel))
 			numSplits.setCoefficient(getMatchVariable(gtLabel, recLabel), -1);
 		numSplits.setRelation(Equal);
 		numSplits.setValue(-1);
-		constraints->add(numSplits);
+		constraints.add(numSplits);
 
 		LOG_ALL(tedlog) << positive << std::endl;
 		LOG_ALL(tedlog) << numSplits << std::endl;
@@ -298,7 +277,7 @@ TolerantEditDistance::findBestCellLabels() {
 	// introduce total split number
 
 	_splits = var++;
-	parameters->setVariableType(_splits, Integer);
+	specialVariableTypes[_splits] = Integer;
 
 	LOG_ALL(tedlog) << "adding total split var " << _splits << std::endl;
 
@@ -308,7 +287,7 @@ TolerantEditDistance::findBestCellLabels() {
 		sumOfSplits.setCoefficient(i, -1);
 	sumOfSplits.setRelation(Equal);
 	sumOfSplits.setValue(0);
-	constraints->add(sumOfSplits);
+	constraints.add(sumOfSplits);
 
 	LOG_ALL(tedlog) << sumOfSplits << std::endl;
 
@@ -316,27 +295,27 @@ TolerantEditDistance::findBestCellLabels() {
 
 	unsigned int mergeBegin = var;
 
-	foreach (size_t recLabel, _toleranceFunction->getReconstructionLabels()) {
+	for (size_t recLabel : _toleranceFunction->getReconstructionLabels()) {
 
 		unsigned int mergeVar = var++;
 
 		LOG_ALL(tedlog) << "adding merge var " << mergeVar << " for rec label " << recLabel << std::endl;
 
-		parameters->setVariableType(mergeVar, Integer);
+		specialVariableTypes[mergeVar] = Integer;
 
 		LinearConstraint positive;
 		positive.setCoefficient(mergeVar, 1);
 		positive.setRelation(GreaterEqual);
 		positive.setValue(0);
-		constraints->add(positive);
+		constraints.add(positive);
 
 		LinearConstraint numMerges;
 		numMerges.setCoefficient(mergeVar, 1);
-		foreach (size_t gtLabel, _toleranceFunction->getPossibleMathesByRec(recLabel))
+		for (size_t gtLabel : _toleranceFunction->getPossibleMathesByRec(recLabel))
 			numMerges.setCoefficient(getMatchVariable(gtLabel, recLabel), -1);
 		numMerges.setRelation(Equal);
 		numMerges.setValue(-1);
-		constraints->add(numMerges);
+		constraints.add(numMerges);
 
 		LOG_ALL(tedlog) << positive << std::endl;
 		LOG_ALL(tedlog) << numMerges << std::endl;
@@ -347,7 +326,7 @@ TolerantEditDistance::findBestCellLabels() {
 	// introduce total merge number
 
 	_merges = var++;
-	parameters->setVariableType(_merges, Integer);
+	specialVariableTypes[_merges] = Integer;
 
 	LOG_ALL(tedlog) << "adding total merge var " << _splits << std::endl;
 
@@ -357,17 +336,17 @@ TolerantEditDistance::findBestCellLabels() {
 		sumOfMerges.setCoefficient(i, -1);
 	sumOfMerges.setRelation(Equal);
 	sumOfMerges.setValue(0);
-	constraints->add(sumOfMerges);
+	constraints.add(sumOfMerges);
 
 	LOG_ALL(tedlog) << sumOfMerges << std::endl;
 
 	// create objective
 
-	pipeline::Value<LinearObjective> objective(var);
+	LinearObjective objective(var);
 
 	// we want to minimize the number of split and merges
-	objective->setCoefficient(_splits, 1);
-	objective->setCoefficient(_merges, 1);
+	objective.setCoefficient(_splits, 1);
+	objective.setCoefficient(_merges, 1);
 	// however, if there are multiple equal solutions, we prefer the ones with 
 	// the least changes -- therefore, we add a small value for each of those 
 	// variables that can not sum up to one and therefor does not change the 
@@ -375,23 +354,40 @@ TolerantEditDistance::findBestCellLabels() {
 	unsigned int ind;
 	size_t cellSize;
 	double volumeSize = _width*_height*_depth;
-	foreach (boost::tie(ind, cellSize), _alternativeIndicators)
-		objective->setCoefficient(ind, static_cast<double>(cellSize)/(volumeSize + 1));
-	objective->setSense(Minimize);
+	for (auto& p : _alternativeIndicators) {
+	
+		ind = p.first;
+		cellSize = p.second;
+
+		objective.setCoefficient(ind, static_cast<double>(cellSize)/(volumeSize + 1));
+	}
+	objective.setSense(Minimize);
 
 	// solve
 
-	pipeline::Process<LinearSolver> solver;
+	SolverFactory factory;
+	// TODO: use std::unique_ptr
+	LinearSolverBackend* solver = factory.createLinearSolverBackend();
 
-	solver->setInput("objective", objective);
-	solver->setInput("linear constraints", constraints);
-	solver->setInput("parameters", parameters);
+	solver->initialize(var, Binary, specialVariableTypes);
+	solver->setObjective(objective);
+	solver->setConstraints(constraints);
 
-	_solution = solver->getOutput("solution");
+	std::string msg;
+	if (!solver->solve(_solution, msg)) {
+
+		LOG_ERROR(tedlog) << "Optimal solution NOT found: " << msg << std::endl;
+	}
+
+	delete solver;
 }
 
-void
+TolerantEditDistanceErrors
 TolerantEditDistance::findErrors() {
+
+	TolerantEditDistanceErrors errors;
+	if (_haveBackgroundLabel)
+		errors = TolerantEditDistanceErrors(_gtBackgroundLabel, _recBackgroundLabel);
 
 	//boost::timer::auto_cpu_timer timer(std::cout, "\tfindErrors():\t\t\t\t%ws\n");
 
@@ -400,77 +396,77 @@ TolerantEditDistance::findErrors() {
 	for (unsigned int i = 0; i < _depth; i++) {
 
 		// initialize with gray (no cell label)
-		_splitLocations->add(boost::make_shared<Image>(_width, _height, 0.33));
-		_mergeLocations->add(boost::make_shared<Image>(_width, _height, 0.33));
-		_fpLocations->add(boost::make_shared<Image>(_width, _height, 0.33));
-		_fnLocations->add(boost::make_shared<Image>(_width, _height, 0.33));
+		_splitLocations.add(std::make_shared<Image>(_width, _height, 0.33));
+		_mergeLocations.add(std::make_shared<Image>(_width, _height, 0.33));
+		_fpLocations.add(std::make_shared<Image>(_width, _height, 0.33));
+		_fnLocations.add(std::make_shared<Image>(_width, _height, 0.33));
 	}
 
 	// prepare error data structure
 
-	_errors->setCells(_toleranceFunction->getCells());
+	errors.setCells(_toleranceFunction->getCells());
 
 	// fill error data structure
 
 	for (unsigned int i = 0; i < _numIndicatorVars; i++) {
 
-		if ((*_solution)[i]) {
+		if (_solution[i]) {
 
 			unsigned int cellIndex = _labelingByVar[i].first;
 			size_t        recLabel  = _labelingByVar[i].second;
 
-			_errors->addMapping(cellIndex, recLabel);
+			errors.addMapping(cellIndex, recLabel);
 		}
 	}
 
 	//LOG_USER(tedlog) << "error counts from Errors data structure:" << std::endl;
-	//LOG_USER(tedlog) << "num splits: " << _errors->getNumSplits() << std::endl;
-	//LOG_USER(tedlog) << "num merges: " << _errors->getNumMerges() << std::endl;
-	//LOG_USER(tedlog) << "num false positives: " << _errors->getNumFalsePositives() << std::endl;
-	//LOG_USER(tedlog) << "num false negatives: " << _errors->getNumFalseNegatives() << std::endl;
+	//LOG_USER(tedlog) << "num splits: " << errors.getNumSplits() << std::endl;
+	//LOG_USER(tedlog) << "num merges: " << errors.getNumMerges() << std::endl;
+	//LOG_USER(tedlog) << "num false positives: " << errors.getNumFalsePositives() << std::endl;
+	//LOG_USER(tedlog) << "num false negatives: " << errors.getNumFalseNegatives() << std::endl;
 
 	// fill error location image stack
 
 	// all cells that changed label within tolerance
 
 	// all cells that split the ground truth
-	size_t gtLabel;
 	typedef TolerantEditDistanceErrors::cell_map_t::mapped_type::value_type mapping_t;
-	foreach (gtLabel, _errors->getSplitLabels())
-		foreach (const mapping_t& cells, _errors->getSplitCells(gtLabel))
-			foreach (unsigned int cellIndex, cells.second)
-				foreach (const cell_t::Location& l, (*_toleranceFunction->getCells())[cellIndex])
-					(*(*_splitLocations)[l.z])(l.x, l.y) = cells.first;
+	for (size_t gtLabel : errors.getSplitLabels())
+		for (const mapping_t& cells : errors.getSplitCells(gtLabel))
+			for (unsigned int cellIndex : cells.second)
+				for (const cell_t::Location& l : (*_toleranceFunction->getCells())[cellIndex])
+					(*_splitLocations[l.z])(l.x, l.y) = cells.first;
 
 	// all cells that split the reconstruction
-	size_t recLabel;
-	foreach (recLabel, _errors->getMergeLabels())
-		foreach (const mapping_t& cells, _errors->getMergeCells(recLabel))
-			foreach (unsigned int cellIndex, cells.second)
-				foreach (const cell_t::Location& l, (*_toleranceFunction->getCells())[cellIndex])
-					(*(*_mergeLocations)[l.z])(l.x, l.y) = cells.first;
+	for (size_t recLabel : errors.getMergeLabels())
+		for (const mapping_t& cells : errors.getMergeCells(recLabel))
+			for (unsigned int cellIndex : cells.second)
+				for (const cell_t::Location& l : (*_toleranceFunction->getCells())[cellIndex])
+					(*_mergeLocations[l.z])(l.x, l.y) = cells.first;
 
 	if (_haveBackgroundLabel) {
 
 		// all cells that are false positives
-		foreach (const mapping_t& cells, _errors->getFalsePositiveCells())
+		for (const mapping_t& cells : errors.getFalsePositiveCells())
 			if (cells.first != _recBackgroundLabel) {
-				foreach (unsigned int cellIndex, cells.second)
-					foreach (const cell_t::Location& l, (*_toleranceFunction->getCells())[cellIndex])
-						(*(*_fpLocations)[l.z])(l.x, l.y) = cells.first;
+				for (unsigned int cellIndex : cells.second)
+					for (const cell_t::Location& l : (*_toleranceFunction->getCells())[cellIndex])
+						(*_fpLocations[l.z])(l.x, l.y) = cells.first;
 			}
 
 		// all cells that are false negatives
-		foreach (const mapping_t& cells, _errors->getFalseNegativeCells())
+		for (const mapping_t& cells : errors.getFalseNegativeCells())
 			if (cells.first != _gtBackgroundLabel) {
-				foreach (unsigned int cellIndex, cells.second)
-					foreach (const cell_t::Location& l, (*_toleranceFunction->getCells())[cellIndex])
-						(*(*_fnLocations)[l.z])(l.x, l.y) = cells.first;
+				for (unsigned int cellIndex : cells.second)
+					for (const cell_t::Location& l : (*_toleranceFunction->getCells())[cellIndex])
+						(*_fnLocations[l.z])(l.x, l.y) = cells.first;
 			}
 	}
 
-	_errors->setInferenceTime(_solution->getTime());
-	_errors->setNumVariables(_solution->size());
+	errors.setInferenceTime(_solution.getTime());
+	errors.setNumVariables(_solution.size());
+
+	return errors;
 }
 
 void
@@ -482,21 +478,21 @@ TolerantEditDistance::correctReconstruction() {
 
 	for (unsigned int i = 0; i < _depth; i++) {
 
-		_correctedReconstruction->add(boost::make_shared<Image>(_width, _height, 0.0));
+		_correctedReconstruction.add(std::make_shared<Image>(_width, _height, 0.0));
 	}
 
 	// read solution
 
 	for (unsigned int i = 0; i < _numIndicatorVars; i++) {
 
-		if ((*_solution)[i]) {
+		if (_solution[i]) {
 
 			unsigned int cellIndex = _labelingByVar[i].first;
 			size_t        recLabel  = _labelingByVar[i].second;
 			cell_t&      cell      = (*_toleranceFunction->getCells())[cellIndex];
 
-			foreach (const cell_t::Location& l, cell)
-				(*(*_correctedReconstruction)[l.z])(l.x, l.y) = recLabel;
+			for (const cell_t::Location& l : cell)
+				(*_correctedReconstruction[l.z])(l.x, l.y) = recLabel;
 		}
 	}
 }

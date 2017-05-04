@@ -40,8 +40,8 @@ DistanceToleranceFunction::extractCells(
 	std::set<unsigned int> foundCells;
 	for (unsigned int z = 0; z < _depth; z++) {
 
-		boost::shared_ptr<const Image> gt  = gtLabels[z];
-		boost::shared_ptr<const Image> rec = recLabels[z];
+		std::shared_ptr<const Image> gt  = gtLabels[z];
+		std::shared_ptr<const Image> rec = recLabels[z];
 
 		for (unsigned int x = 0; x < _width; x++)
 			for (unsigned int y = 0; y < _height; y++) {
@@ -143,7 +143,7 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 
 	// for each cell
 	int i = 0;
-	foreach (unsigned int index, _relabelCandidates) {
+	for (unsigned int index : _relabelCandidates) {
 
 		i++;
 		LOG_DEBUG(distancetolerancelog)
@@ -173,7 +173,7 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 		LOG_ALL(distancetolerancelog) << "\tcan map to ";
 
 		// for each alternative label
-		foreach (size_t recLabel, alternativeLabels) {
+		for (size_t recLabel : alternativeLabels) {
 
 			LOG_ALL(distancetolerancelog) << recLabel << " ";
 
@@ -287,7 +287,7 @@ DistanceToleranceFunction::getAlternativeLabels(
 	unsigned int maxAlternativeLabels = 0;
 
 	// for each location i in that cell
-	foreach (const cell_t::Location& i, cell) {
+	for (const cell_t::Location& i : cell) {
 
 		// all the labels in the neighborhood of i
 		std::set<size_t> neighborhoodLabels;
@@ -299,7 +299,7 @@ DistanceToleranceFunction::getAlternativeLabels(
 		unsigned int numComplete = 0;
 
 		// for all locations within the neighborhood, get alternative labels
-		foreach (const cell_t::Location& n, neighborhood) {
+		for (const cell_t::Location& n : neighborhood) {
 
 			cell_t::Location j(i.x + n.x, i.y + n.y, i.z + n.z);
 
@@ -351,9 +351,12 @@ DistanceToleranceFunction::getAlternativeLabels(
 	// cell
 	size_t label;
 	unsigned int count;
-	foreach (boost::tie(label, count), counts)
+	for (auto& p : counts) {
+		label = p.first;
+		count = p.second;
 		if (count == cell.size())
 			alternativeLabels.insert(label);
+	}
 
 	return alternativeLabels;
 }

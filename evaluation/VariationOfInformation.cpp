@@ -1,35 +1,17 @@
 #include <util/Logger.h>
 #include <util/exceptions.h>
-#include <util/ProgramOptions.h>
 #include "VariationOfInformation.h"
 
-logger::LogChannel variationofinformationlog("variationofinformationlog", "[ResultEvaluator] ");
+logger::LogChannel variationofinformationlog("variationofinformationlog", "[VariationOfInformation] ");
 
-VariationOfInformation::VariationOfInformation(bool headerOnly, bool ignoreBackground) :
-		_ignoreBackground(ignoreBackground),
-		_headerOnly(headerOnly) {
+VariationOfInformation::VariationOfInformation(bool ignoreBackground) :
+		_ignoreBackground(ignoreBackground) {}
 
-	if (!_headerOnly) {
+VariationOfInformationErrors
+VariationOfInformation::compute(const ImageStack& groundTruth, const ImageStack& reconstruction) {
 
-		registerInput(_reconstruction, "reconstruction");
-		registerInput(_groundTruth, "ground truth");
-	}
-
-	registerOutput(_errors, "errors");
-}
-
-void
-VariationOfInformation::updateOutputs() {
-
-	// set output
-	if (!_errors)
-		_errors = new VariationOfInformationErrors();
-
-	if (_headerOnly)
-		return;
-
-	if (_reconstruction->size() != _groundTruth->size())
-		BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("image stacks have different size") << STACK_TRACE);
+	if (reconstruction.size() != groundTruth.size())
+		UTIL_THROW_EXCEPTION(SizeMismatchError, "image stacks have different size");
 
 	// count label occurences
 
@@ -37,15 +19,15 @@ VariationOfInformation::updateOutputs() {
 	_p2.clear();
 	_p12.clear();
 
-	ImageStack::const_iterator i1  = _reconstruction->begin();
-	ImageStack::const_iterator i2  = _groundTruth->begin();
+	ImageStack::const_iterator i1  = reconstruction.begin();
+	ImageStack::const_iterator i2  = groundTruth.begin();
 
 	unsigned int n = 0;
 
-	for (; i1 != _reconstruction->end(); i1++, i2++) {
+	for (; i1 != reconstruction.end(); i1++, i2++) {
 
 		if ((*i1)->size() != (*i2)->size())
-			BOOST_THROW_EXCEPTION(SizeMismatchError() << error_message("images have different size") << STACK_TRACE);
+			UTIL_THROW_EXCEPTION(SizeMismatchError, "images have different size");
 
 		n += (*i1)->size();
 
@@ -104,6 +86,8 @@ VariationOfInformation::updateOutputs() {
 	// H(stack 1, stack2)
 	double H12 = H1 + H2 - I;
 
+	VariationOfInformationErrors errors;
+
 	// We compare stack1 (reconstruction) to stack2 (groundtruth). Thus, the 
 	// split entropy represents the number of splits of regions in stack2 in 
 	// stack1, and the merge entropy the number of merges of regions in stack2 
@@ -112,13 +96,15 @@ VariationOfInformation::updateOutputs() {
 	// H(stack 1|stack 2) = H(stack 1, stack 2) - H(stack 2)
 	//   (i.e., if I know the ground truth label, how much bits do I need to 
 	//   infer the reconstructino label?)
-	_errors->setSplitEntropy(H12 - H2);
+	errors.setSplitEntropy(H12 - H2);
 	// H(stack 2|stack 1) = H(stack 1, stack 2) - H(stack 1)
 	//   (i.e., if I know the reconstruction label, how much bits do I need to 
 	//   infer the groundtruth label?)
-	_errors->setMergeEntropy(H12 - H1);
+	errors.setMergeEntropy(H12 - H1);
 
 	LOG_DEBUG(variationofinformationlog)
-			<< "sum of conditional entropies is " << _errors->getEntropy()
+			<< "sum of conditional entropies is " << errors.getEntropy()
 			<< ", which should be equal to " << (H1 + H2 - 2.0*I) << std::endl;
+
+	return errors;
 }

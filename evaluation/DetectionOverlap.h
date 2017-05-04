@@ -2,7 +2,6 @@
 #define TED_DETECTION_OVERLAP_H__
 
 #include <util/point.hpp>
-#include <pipeline/SimpleProcessNode.h>
 #include <imageprocessing/ImageStack.h>
 #include "DetectionOverlapErrors.h"
 
@@ -17,22 +16,13 @@
  *
  * for details.
  */
-class DetectionOverlap : public pipeline::SimpleProcessNode<> {
+class DetectionOverlap {
 
 public:
 
-	/**
-	 * Create a new evaluator.
-	 *
-	 * @param headerOnly
-	 *              If set to true, no error will be computed, only the header 
-	 *              information in Errors::errorHeader() will be set.
-	 */
-	DetectionOverlap(bool headerOnly = false);
+	DetectionOverlapErrors compute(const ImageStack& groundTruth, const ImageStack& reconstruction);
 
 private:
-
-	void updateOutputs();
 
 	void getCenterPoints(
 			const Image&                          image,
@@ -47,14 +37,6 @@ private:
 			std::map<std::pair<size_t, size_t>, unsigned int>& overlapAreas,
 			std::map<size_t, std::set<size_t> >& atob,
 			std::map<size_t, std::set<size_t> >& btoa);
-
-	// input image stacks
-	pipeline::Input<ImageStack> _stack1;
-	pipeline::Input<ImageStack> _stack2;
-
-	pipeline::Output<DetectionOverlapErrors> _errors;
-
-	bool _headerOnly;
 };
 
 #endif // TED_DETECTION_OVERLAP_H__
