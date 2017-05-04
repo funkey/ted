@@ -1,8 +1,12 @@
 #include "SkeletonToleranceFunction.h"
+#include <util/Logger.h>
+
+logger::LogChannel skeletontolerancelog("skeletontolerancelog", "[SkeletonToleranceFunction] ");
 
 void
 SkeletonToleranceFunction::findRelabelCandidates(const std::vector<float>& maxBoundaryDistances) {
 
+	LOG_DEBUG(skeletontolerancelog) << "finding relabel candidates..." << std::endl;
 
 	_relabelCandidates.clear();
 	for (unsigned int cellIndex = 0; cellIndex < maxBoundaryDistances.size(); cellIndex++) {
@@ -22,6 +26,8 @@ SkeletonToleranceFunction::findRelabelCandidates(const std::vector<float>& maxBo
 			registerPossibleMatch(cell.getGroundTruthLabel(), _backgroundLabel);
 		}
 	}
+
+	LOG_DEBUG(skeletontolerancelog) << "done" << std::endl;
 }
 
 bool

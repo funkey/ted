@@ -37,8 +37,10 @@ TolerantEditDistance::TolerantEditDistance(
 
 	if (fromSkeleton){
 		_toleranceFunction = new SkeletonToleranceFunction(distanceThreshold, _recBackgroundLabel);
+		LOG_ALL(tedlog) << "created TolerantEditDistance for skeleton ground-truth" << std::endl;
 	} else {
 		_toleranceFunction = new DistanceToleranceFunction(distanceThreshold, _haveBackgroundLabel, _recBackgroundLabel);
+		LOG_ALL(tedlog) << "created TolerantEditDistance for volumetric ground-truth" << std::endl;
 	}
 }
 
