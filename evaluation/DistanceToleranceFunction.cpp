@@ -8,9 +8,9 @@ logger::LogChannel distancetolerancelog("distancetolerancelog", "[DistanceTolera
 DistanceToleranceFunction::DistanceToleranceFunction(
 		float distanceThreshold,
 		bool haveBackgroundLabel,
-		size_t backgroundLabel) :
+		size_t recBackgroundLabel) :
 	_haveBackgroundLabel(haveBackgroundLabel),
-	_backgroundLabel(backgroundLabel),
+	_recBackgroundLabel(recBackgroundLabel),
 	_maxDistanceThreshold(distanceThreshold) {}
 
 void
@@ -167,24 +167,28 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 		// different label, which is the case when there is at least one 
 		// alternative)
 		if (_haveBackgroundLabel)
-			if (alternativeLabels.size() > 0 && cell.getReconstructionLabel() != _backgroundLabel)
-				alternativeLabels.insert(_backgroundLabel);
-
-		LOG_ALL(distancetolerancelog) << "\tcan map to ";
+			if (alternativeLabels.size() > 0 && cell.getReconstructionLabel() != _recBackgroundLabel)
+				alternativeLabels.insert(_recBackgroundLabel);
 
 		// for each alternative label
 		for (size_t recLabel : alternativeLabels) {
-
-			LOG_ALL(distancetolerancelog) << recLabel << " ";
 
 			// register possible match
 			cell.addAlternativeLabel(recLabel);
 			registerPossibleMatch(cell.getGroundTruthLabel(), recLabel);
 		}
-		LOG_ALL(distancetolerancelog) << std::endl;
 	}
 
 	LOG_DEBUG(distancetolerancelog) << std::endl;
+
+	for (const cell_t& cell : *_cells) {
+
+		LOG_ALL(distancetolerancelog) << "cell with GT label " << cell.getGroundTruthLabel() << " can map to: ";
+		LOG_ALL(distancetolerancelog) << cell.getReconstructionLabel() << " [original] ";
+		for (size_t recLabel : cell.getAlternativeLabels())
+			LOG_ALL(distancetolerancelog) << recLabel << " ";
+		LOG_ALL(distancetolerancelog) << std::endl;
+	}
 }
 
 bool

@@ -14,11 +14,12 @@ public:
 
 	SkeletonToleranceFunction(
 			float distanceThreshold,
-			size_t backgroundLabel = 0) :
+			size_t gtBackgroundLabel) :
 		DistanceToleranceFunction(
 				distanceThreshold,
-				true, /* have background label */
-				backgroundLabel) {}
+				false), /* don't have background label */
+		_gtBackgroundLabel(gtBackgroundLabel),
+		_recDeleteLabel((size_t)(-1)) {}
 
 private:
 
@@ -26,6 +27,9 @@ private:
 	virtual void findRelabelCandidates(const std::vector<float>& maxBoundaryDistances);
 
 	bool isSkeletonCell(unsigned int cellIndex);
+
+	size_t _gtBackgroundLabel;
+	size_t _recDeleteLabel;
 };
 
 #endif // TED_EVALUATION_SKELETON_TOLERANCE_FUNCTION_H__

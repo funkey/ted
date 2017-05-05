@@ -20,10 +20,9 @@ SkeletonToleranceFunction::findRelabelCandidates(const std::vector<float>& maxBo
 
 			cell_t& cell = (*_cells)[cellIndex];
 
-			// all non-skeleton cells can (and should) be relabeled to 
-			// background
-			cell.addAlternativeLabel(_backgroundLabel);
-			registerPossibleMatch(cell.getGroundTruthLabel(), _backgroundLabel);
+			// all non-skeleton cells can (and will be) be deleted
+			cell.addAlternativeLabel(_recDeleteLabel);
+			registerPossibleMatch(cell.getGroundTruthLabel(), _recDeleteLabel);
 		}
 	}
 
@@ -35,5 +34,5 @@ SkeletonToleranceFunction::isSkeletonCell(unsigned int cellIndex) {
 
 	// a cell is a skeleton cell, if its ground truth label is not the 
 	// background
-	return (*_cells)[cellIndex].getGroundTruthLabel() != _backgroundLabel;
+	return (*_cells)[cellIndex].getGroundTruthLabel() != _gtBackgroundLabel;
 }

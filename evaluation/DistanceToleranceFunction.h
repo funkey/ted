@@ -10,7 +10,7 @@ public:
 	DistanceToleranceFunction(
 			float distanceThreshold,
 			bool haveBackgroundLabel,
-			size_t backgroundLabel = 0);
+			size_t recBackgroundLabel = 0);
 
 	void extractCells(
 			unsigned int numCells,
@@ -25,7 +25,7 @@ protected:
 	std::vector<unsigned int> _relabelCandidates;
 
 	bool _haveBackgroundLabel;
-	size_t _backgroundLabel;
+	size_t _recBackgroundLabel;
 
 private:
 

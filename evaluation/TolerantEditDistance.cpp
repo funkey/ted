@@ -36,7 +36,7 @@ TolerantEditDistance::TolerantEditDistance(
 	}
 
 	if (fromSkeleton){
-		_toleranceFunction = new SkeletonToleranceFunction(distanceThreshold, _recBackgroundLabel);
+		_toleranceFunction = new SkeletonToleranceFunction(distanceThreshold, _gtBackgroundLabel);
 		LOG_ALL(tedlog) << "created TolerantEditDistance for skeleton ground-truth" << std::endl;
 	} else {
 		_toleranceFunction = new DistanceToleranceFunction(distanceThreshold, _haveBackgroundLabel, _recBackgroundLabel);
@@ -135,7 +135,7 @@ TolerantEditDistance::extractCells(const ImageStack& groundTruth, const ImageSta
 			reconstruction,
 			groundTruth);
 
-	LOG_ALL(tedlog)
+	LOG_DEBUG(tedlog)
 			<< "found "
 			<< _toleranceFunction->getGroundTruthLabels().size()
 			<< " ground truth labels and "
@@ -185,11 +185,11 @@ TolerantEditDistance::findBestCellLabels() {
 		constraint.setValue(1);
 		constraints.add(constraint);
 
-		LOG_ALL(tedlog) << constraint << std::endl;
+		//LOG_ALL(tedlog) << constraint << std::endl;
 	}
 	_numIndicatorVars = var;
 
-	LOG_ALL(tedlog) << "adding constraints to ensure that rec labels don't disappear" << std::endl;
+	//LOG_ALL(tedlog) << "adding constraints to ensure that rec labels don't disappear" << std::endl;
 
 	// labels can not disappear
 	for (size_t recLabel : _toleranceFunction->getReconstructionLabels()) {
@@ -201,7 +201,7 @@ TolerantEditDistance::findBestCellLabels() {
 		constraint.setValue(1);
 		constraints.add(constraint);
 
-		LOG_ALL(tedlog) << constraint << std::endl;
+		//LOG_ALL(tedlog) << constraint << std::endl;
 	}
 
 	// introduce indicators for each match of ground truth label to 
@@ -232,7 +232,7 @@ TolerantEditDistance::findBestCellLabels() {
 				matchConstraint.setValue(0);
 				constraints.add(matchConstraint);
 
-				LOG_ALL(tedlog) << matchConstraint << std::endl;
+				//LOG_ALL(tedlog) << matchConstraint << std::endl;
 			}
 
 			noMatchConstraint.setCoefficient(matchVar, -1);
@@ -240,7 +240,7 @@ TolerantEditDistance::findBestCellLabels() {
 			noMatchConstraint.setValue(0);
 			constraints.add(noMatchConstraint);
 
-			LOG_ALL(tedlog) << noMatchConstraint << std::endl;
+			//LOG_ALL(tedlog) << noMatchConstraint << std::endl;
 		}
 	}
 
@@ -252,7 +252,7 @@ TolerantEditDistance::findBestCellLabels() {
 
 		unsigned int splitVar = var++;
 
-		LOG_ALL(tedlog) << "adding split var " << splitVar << " for gt label " << gtLabel << std::endl;
+		//LOG_ALL(tedlog) << "adding split var " << splitVar << " for gt label " << gtLabel << std::endl;
 
 		specialVariableTypes[splitVar] = Integer;
 
@@ -270,8 +270,8 @@ TolerantEditDistance::findBestCellLabels() {
 		numSplits.setValue(-1);
 		constraints.add(numSplits);
 
-		LOG_ALL(tedlog) << positive << std::endl;
-		LOG_ALL(tedlog) << numSplits << std::endl;
+		//LOG_ALL(tedlog) << positive << std::endl;
+		//LOG_ALL(tedlog) << numSplits << std::endl;
 	}
 
 	unsigned int splitEnd = var;
@@ -281,7 +281,7 @@ TolerantEditDistance::findBestCellLabels() {
 	_splits = var++;
 	specialVariableTypes[_splits] = Integer;
 
-	LOG_ALL(tedlog) << "adding total split var " << _splits << std::endl;
+	//LOG_ALL(tedlog) << "adding total split var " << _splits << std::endl;
 
 	LinearConstraint sumOfSplits;
 	sumOfSplits.setCoefficient(_splits, 1);
@@ -291,7 +291,7 @@ TolerantEditDistance::findBestCellLabels() {
 	sumOfSplits.setValue(0);
 	constraints.add(sumOfSplits);
 
-	LOG_ALL(tedlog) << sumOfSplits << std::endl;
+	//LOG_ALL(tedlog) << sumOfSplits << std::endl;
 
 	// introduce merge number for each reconstruction label
 
@@ -301,7 +301,7 @@ TolerantEditDistance::findBestCellLabels() {
 
 		unsigned int mergeVar = var++;
 
-		LOG_ALL(tedlog) << "adding merge var " << mergeVar << " for rec label " << recLabel << std::endl;
+		//LOG_ALL(tedlog) << "adding merge var " << mergeVar << " for rec label " << recLabel << std::endl;
 
 		specialVariableTypes[mergeVar] = Integer;
 
@@ -319,8 +319,8 @@ TolerantEditDistance::findBestCellLabels() {
 		numMerges.setValue(-1);
 		constraints.add(numMerges);
 
-		LOG_ALL(tedlog) << positive << std::endl;
-		LOG_ALL(tedlog) << numMerges << std::endl;
+		//LOG_ALL(tedlog) << positive << std::endl;
+		//LOG_ALL(tedlog) << numMerges << std::endl;
 	}
 
 	unsigned int mergeEnd = var;
@@ -330,7 +330,7 @@ TolerantEditDistance::findBestCellLabels() {
 	_merges = var++;
 	specialVariableTypes[_merges] = Integer;
 
-	LOG_ALL(tedlog) << "adding total merge var " << _splits << std::endl;
+	//LOG_ALL(tedlog) << "adding total merge var " << _splits << std::endl;
 
 	LinearConstraint sumOfMerges;
 	sumOfMerges.setCoefficient(_merges, 1);
@@ -340,7 +340,7 @@ TolerantEditDistance::findBestCellLabels() {
 	sumOfMerges.setValue(0);
 	constraints.add(sumOfMerges);
 
-	LOG_ALL(tedlog) << sumOfMerges << std::endl;
+	//LOG_ALL(tedlog) << sumOfMerges << std::endl;
 
 	// create objective
 
@@ -502,7 +502,7 @@ TolerantEditDistance::correctReconstruction() {
 void
 TolerantEditDistance::assignIndicatorVariable(unsigned int var, unsigned int cellIndex, size_t gtLabel, size_t recLabel) {
 
-	LOG_ALL(tedlog) << "adding indicator var " << var << " to assign label " << recLabel << " to cell " << cellIndex << std::endl;
+	//LOG_ALL(tedlog) << "adding indicator var " << var << " to assign label " << recLabel << " to cell " << cellIndex << std::endl;
 
 	_indicatorVarsByRecLabel[recLabel].push_back(var);
 	_indicatorVarsByGtToRecLabel[gtLabel][recLabel].push_back(var);
@@ -525,7 +525,7 @@ TolerantEditDistance::getIndicatorsGtToRec(size_t gtLabel, size_t recLabel) {
 void
 TolerantEditDistance::assignMatchVariable(unsigned int var, size_t gtLabel, size_t recLabel) {
 
-	LOG_ALL(tedlog) << "adding indicator var " << var << " to match gt label " << gtLabel << " to rec label " << recLabel << std::endl;
+	//LOG_ALL(tedlog) << "adding indicator var " << var << " to match gt label " << gtLabel << " to rec label " << recLabel << std::endl;
 
 	_matchVars[gtLabel][recLabel] = var;
 }
