@@ -77,11 +77,14 @@ public:
 
 	void setNumThreads(int numThreads);
 
-	boost::python::dict createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size);
+	boost::python::dict createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size) { return createReport(gt, rec, voxel_size, 0); }
+	boost::python::dict createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject* corrected);
 
 private:
 
 	ImageStack imageStackFromArray(PyObject* a, PyObject* voxel_size);
+
+	void imageStackToArray(const ImageStack& stack, PyObject* a);
 
 	void initialize();
 

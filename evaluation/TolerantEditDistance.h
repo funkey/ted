@@ -22,6 +22,8 @@ public:
 
 	TolerantEditDistanceErrors compute(const ImageStack& groundTruth, const ImageStack& reconstruction);
 
+	const ImageStack& getCorrectedReconstruction() { return _correctedReconstruction; }
+
 private:
 
 	typedef LocalToleranceFunction::cell_t cell_t;

@@ -27,7 +27,7 @@ PyTed::setNumThreads(int numThreads) {
 }
 
 boost::python::dict
-PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size) {
+PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject* corrected) {
 
 	util::ProgramOptions::setOptionValue("numThreads", util::to_string(_numThreads));
 
@@ -107,6 +107,9 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size) {
 		summary["fps"] = fps;
 		summary["fns"] = fns;
 		summary["matches"] = matches;
+
+		if (corrected != 0)
+			imageStackToArray(ted.getCorrectedReconstruction(), corrected);
 	}
 
 	summary["ted_version"] = std::string(__git_sha1);
@@ -183,6 +186,53 @@ PyTed::imageStackFromArray(PyObject* a, PyObject* voxel_size) {
 	LOG_DEBUG(pytedlog) << "done" << std::endl;
 
 	return stack;
+}
+
+void
+PyTed::imageStackToArray(const ImageStack& stack, PyObject* a) {
+
+	// create (expect?) a C contiguous uint32 array
+	PyArray_Descr* descr = PyArray_DescrFromType(NPY_UINT32);
+	PyArrayObject* array = (PyArrayObject*)(PyArray_FromAny(a, descr, 2, 3, 0, NULL));
+
+	if (array == NULL)
+		UTIL_THROW_EXCEPTION(
+				UsageError,
+				"only arrays of dimension 2 or 3, with datatype np.uint32 are supported");
+
+	LOG_DEBUG(pytedlog) << "converted to array" << std::endl;
+
+	int dims = PyArray_NDIM(array);
+	size_t width, height, depth;
+
+	if (dims == 2) {
+
+		depth = 1;
+		height = PyArray_DIM(array, 0);
+		width = PyArray_DIM(array, 1);
+
+	} else {
+
+		depth =  PyArray_DIM(array, 0);
+		height = PyArray_DIM(array, 1);
+		width = PyArray_DIM(array, 2);
+	}
+
+	LOG_DEBUG(pytedlog) << "copying data..." << std::endl;
+
+	for (size_t z = 0; z < depth; z++) {
+		for (size_t y = 0; y < height; y++)
+			for (size_t x = 0; x < width; x++) {
+
+				uint32_t value = (*stack[z])(x,y);
+				if (dims == 2)
+					*static_cast<uint32_t*>(PyArray_GETPTR2(array, y, x)) = value;
+				else
+					*static_cast<uint32_t*>(PyArray_GETPTR3(array, z, y, x)) = value;
+			}
+	}
+
+	LOG_DEBUG(pytedlog) << "done" << std::endl;
 }
 
 void

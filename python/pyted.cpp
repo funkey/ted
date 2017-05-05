@@ -93,7 +93,8 @@ BOOST_PYTHON_MODULE(pyted) {
 	boost::python::class_<PyTed>("Ted")
 			.def(boost::python::init<PyTed::Parameters>())
 			.def("set_num_threads", &PyTed::setNumThreads)
-			.def("create_report", &PyTed::createReport)
+			.def("create_report", (boost::python::dict(PyTed::*)(PyObject*,PyObject*,PyObject*))(&PyTed::createReport))
+			.def("create_report", (boost::python::dict(PyTed::*)(PyObject*,PyObject*,PyObject*,PyObject*))(&PyTed::createReport))
 			;
 }
 
