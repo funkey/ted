@@ -84,6 +84,9 @@ public:
 	 */
 	void addAlternativeLabel(LabelType k) {
 
+		if (_label == k)
+			return;
+
 		_alternativeLabels.insert(k);
 	}
 
