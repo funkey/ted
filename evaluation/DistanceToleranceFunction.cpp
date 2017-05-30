@@ -181,14 +181,14 @@ DistanceToleranceFunction::enumerateCellLabels(const ImageStack& recLabels) {
 
 	LOG_DEBUG(distancetolerancelog) << std::endl;
 
-	for (const cell_t& cell : *_cells) {
+	//for (const cell_t& cell : *_cells) {
 
-		LOG_ALL(distancetolerancelog) << "cell with GT label " << cell.getGroundTruthLabel() << " can map to: ";
-		LOG_ALL(distancetolerancelog) << cell.getReconstructionLabel() << " [original] ";
-		for (size_t recLabel : cell.getAlternativeLabels())
-			LOG_ALL(distancetolerancelog) << recLabel << " ";
-		LOG_ALL(distancetolerancelog) << std::endl;
-	}
+		//LOG_ALL(distancetolerancelog) << "cell with GT label " << cell.getGroundTruthLabel() << " can map to: ";
+		//LOG_ALL(distancetolerancelog) << cell.getReconstructionLabel() << " [original] ";
+		//for (size_t recLabel : cell.getAlternativeLabels())
+			//LOG_ALL(distancetolerancelog) << recLabel << " ";
+		//LOG_ALL(distancetolerancelog) << std::endl;
+	//}
 }
 
 bool
