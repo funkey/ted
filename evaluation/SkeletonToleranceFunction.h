@@ -19,7 +19,7 @@ public:
 				distanceThreshold,
 				false), /* don't have background label */
 		_gtBackgroundLabel(gtBackgroundLabel),
-		_recDeleteLabel((size_t)(-1)) {}
+		_ignoreLabel((size_t)(-1)) {}
 
 private:
 
@@ -29,7 +29,9 @@ private:
 	bool isSkeletonCell(unsigned int cellIndex);
 
 	size_t _gtBackgroundLabel;
-	size_t _recDeleteLabel;
+
+	// label used for non-skeleton cells, which should be ignored
+	size_t _ignoreLabel;
 };
 
 #endif // TED_EVALUATION_SKELETON_TOLERANCE_FUNCTION_H__

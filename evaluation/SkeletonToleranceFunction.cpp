@@ -18,13 +18,14 @@ SkeletonToleranceFunction::findRelabelCandidates(const std::vector<float>& maxBo
 
 		} else {
 
+			// non-sekelton cells are hard-wired to the ignore label, there is 
+			// nothing to do for them
 			cell_t& cell = (*_cells)[cellIndex];
-
-			// all non-skeleton cells can (and will be) be deleted
-			cell.addAlternativeLabel(_recDeleteLabel);
-			registerPossibleMatch(cell.getGroundTruthLabel(), _recDeleteLabel);
+			cell.setReconstructionLabel(_ignoreLabel);
+			cell.setGroundTruthLabel(_ignoreLabel);
 		}
 	}
+	registerPossibleMatch(_ignoreLabel, _ignoreLabel);
 
 	LOG_DEBUG(skeletontolerancelog) << "done" << std::endl;
 }
