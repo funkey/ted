@@ -58,13 +58,15 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 
 	if (_parameters.reportTed) {
 
-		TolerantEditDistance ted(
-				_parameters.fromSkeleton,
-				_parameters.distanceThreshold,
-				_parameters.gtBackgroundLabel,
-				_parameters.haveBackground,
-				_parameters.recBackgroundLabel);
+		TolerantEditDistance::Parameters tedParameters;
+		tedParameters.fromSkeleton = _parameters.fromSkeleton;
+		tedParameters.distanceThreshold = _parameters.distanceThreshold;
+		tedParameters.reportFPsFNs = _parameters.haveBackground;
+		tedParameters.allowBackgroundAppearance = true; // to be backwards compatible, might change at some point
+		tedParameters.gtBackgroundLabel = _parameters.gtBackgroundLabel;
+		tedParameters.recBackgroundLabel = _parameters.recBackgroundLabel;
 
+		TolerantEditDistance ted(tedParameters);
 		TolerantEditDistanceErrors errors = ted.compute(groundTruth, reconstruction);
 
 		boost::python::dict splits;

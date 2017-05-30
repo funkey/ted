@@ -1,7 +1,7 @@
 #ifndef TED_EVALUATION_TOLERANT_EDIT_DISTANCE_ERRORS_H__
 #define TED_EVALUATION_TOLERANT_EDIT_DISTANCE_ERRORS_H__
 
-#include "Cell.h"
+#include "Cells.h"
 
 /**
  * Representation of split and merge (and optionally false positive and false 
@@ -14,8 +14,6 @@ class TolerantEditDistanceErrors {
 
 public:
 
-	typedef Cell<size_t>                                                 cell_t;
-	typedef std::shared_ptr<std::vector<cell_t> >                        cells_t;
 	typedef std::map<size_t, std::map<size_t, std::set<unsigned int> > > cell_map_t;
 
 	/**
@@ -45,7 +43,7 @@ public:
 	 *             ground truth label and can be mapped via addMapping() to an 
 	 *             arbitrary reconstruction label.
 	 */
-	void setCells(cells_t cells);
+	void setCells(std::shared_ptr<Cells> cells);
 
 	/**
 	 * Clear the label mappings and error counts.
@@ -179,7 +177,7 @@ private:
 			size_t             backgroundLabel);
 
 	// a list of cells partitioning the image
-	cells_t _cells;
+	std::shared_ptr<Cells> _cells;
 
 	// sparse representation of groundtruth to reconstruction confusion matrix
 	cell_map_t _cellsByRecToGtLabel;

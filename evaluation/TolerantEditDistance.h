@@ -5,38 +5,74 @@
 #include <inference/Solution.h>
 #include "LocalToleranceFunction.h"
 #include "TolerantEditDistanceErrors.h"
-#include "Cell.h"
 
 class TolerantEditDistance {
 
 public:
 
-	TolerantEditDistance(
-			bool fromSkeleton = false,
-			unsigned int distanceThreshold = 10,
-			float gtBackgroundLabel = 0.0,
-			bool haveBackground = true,
-			float recBackgroundLabel = 0.0);
+	struct Parameters {
 
-	~TolerantEditDistance();
+		Parameters() :
+			fromSkeleton(false),
+			distanceThreshold(10),
+			reportFPsFNs(false),
+			allowBackgroundAppearance(false),
+			gtBackgroundLabel(0),
+			recBackgroundLabel(0) {}
 
+		/**
+		* True if the ground-truth consists of skeletons. In this case, the 
+		* ground-truth background label (default 0) will be ignored.
+		*/
+		bool fromSkeleton;
+
+		/**
+		 * By how much boundaries in the reconstruction are allowed to be shifted.
+		 */
+		unsigned int distanceThreshold;
+
+		/**
+		 * Whether background labels should be treated differently: If true, 
+		 * splits and merges involving background labels are counted as false 
+		 * positives and false negatives, respectively. Defaults to false.
+		 */
+		bool reportFPsFNs;
+
+		/**
+		* If true, background can be created by shifting a boundary in opposite 
+		* directions, thus effectively letting new background parts appear.
+		*/
+		bool allowBackgroundAppearance;
+
+		/**
+		 * The background labels in the respective image stacks. Defaults to 0.
+		 */
+		float gtBackgroundLabel;
+		float recBackgroundLabel;
+	};
+
+	TolerantEditDistance(const Parameters& parameters = Parameters());
+
+	/**
+	 * Compute errors for the given ground-truth and reconstruction.
+	 */
 	TolerantEditDistanceErrors compute(const ImageStack& groundTruth, const ImageStack& reconstruction);
 
+	/**
+	 * After a call to compute(), get a corrected version of the reconstruction, 
+	 * which was chosen to be as close as possible to the ground-truth.
+	 */
 	const ImageStack& getCorrectedReconstruction() { return _correctedReconstruction; }
 
 private:
 
-	typedef LocalToleranceFunction::cell_t cell_t;
+	void reset(const ImageStack& groundTruth, const ImageStack& reconstruction);
 
-	void clear();
+	void minimizeErrors(const Cells& cells);
 
-	void extractCells(const ImageStack& groundTruth, const ImageStack& reconstruction);
+	void correctReconstruction(const Cells& cells);
 
-	void findBestCellLabels();
-
-	TolerantEditDistanceErrors findErrors();
-
-	void correctReconstruction();
+	TolerantEditDistanceErrors findErrors(std::shared_ptr<Cells> cells);
 
 	void assignIndicatorVariable(unsigned int var, unsigned int cellIndex, size_t gtLabel, size_t recLabel);
 
@@ -48,12 +84,7 @@ private:
 
 	unsigned int getMatchVariable(size_t gtLabel, size_t recLabel);
 
-	// is there a background label?
-	bool _haveBackgroundLabel;
-
-	// the optional background labels of the ground truth and reconstruction
-	size_t _gtBackgroundLabel;
-	size_t _recBackgroundLabel;
+	Parameters _parameters;
 
 	ImageStack _correctedReconstruction;
 	ImageStack _splitLocations;
@@ -62,7 +93,7 @@ private:
 	ImageStack _fnLocations;
 
 	// the local tolerance function to use
-	LocalToleranceFunction* _toleranceFunction;
+	std::unique_ptr<LocalToleranceFunction> _toleranceFunction;
 
 	// the extends of the ground truth and reconstruction
 	unsigned int _width, _height, _depth;

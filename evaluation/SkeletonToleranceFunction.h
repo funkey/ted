@@ -17,16 +17,16 @@ public:
 			size_t gtBackgroundLabel) :
 		DistanceToleranceFunction(
 				distanceThreshold,
-				false), /* don't have background label */
+				false), /* don't allow background appearance */
 		_gtBackgroundLabel(gtBackgroundLabel),
 		_ignoreLabel((size_t)(-1)) {}
 
-private:
+//private:
 
-	// for the skeleton criterion, each cell is allowed to be relabeled
-	virtual void findRelabelCandidates(const std::vector<float>& maxBoundaryDistances);
+	//// for the skeleton criterion, each cell is allowed to be relabeled
+	//virtual void findRelabelCandidates(const std::vector<float>& maxBoundaryDistances);
 
-	bool isSkeletonCell(unsigned int cellIndex);
+	//bool isSkeletonCell(unsigned int cellIndex);
 
 	size_t _gtBackgroundLabel;
 

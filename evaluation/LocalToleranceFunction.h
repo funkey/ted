@@ -7,7 +7,7 @@
 #include <memory>
 
 #include <imageprocessing/ImageStack.h>
-#include "Cell.h"
+#include "Cells.h"
 
 #include <vigra/multi_array.hxx>
 
@@ -19,30 +19,7 @@ class LocalToleranceFunction {
 
 public:
 
-	typedef Cell<size_t>                          cell_t;
-	typedef std::shared_ptr<std::vector<cell_t> > cells_t;
-
-	LocalToleranceFunction() :
-		_resolutionX(1.0),
-		_resolutionY(1.0),
-		_resolutionZ(1.0) {}
-
 	virtual ~LocalToleranceFunction() {}
-
-	/**
-	 * Set the number of units for each edge of a voxel.
-	 */
-	void setResolution(float resX, float resY, float resZ) {
-
-		_resolutionX = resX;
-		_resolutionY = resY;
-		_resolutionZ = resZ;
-	}
-
-	/**
-	 * Clear all extracted cells and supplemental data structures.
-	 */
-	void clear();
 
 	/**
 	 * Extract cells from the given cell label image and find all alternative 
@@ -59,67 +36,19 @@ public:
 	 *             A corresponding image stack with the ground-truth labels at 
 	 *             each location.
 	 */
-	virtual void extractCells(
-			unsigned int numCells,
-			const vigra::MultiArray<3, unsigned int>& cellLabels,
-			const ImageStack& recLabels,
-			const ImageStack& gtLabels) = 0;
-
-	/**
-	 * Get all the cells that have been extracted.
-	 */
-	cells_t getCells() { return _cells; }
-
-	/**
-	 * Get all the ground truth labels.
-	 */
-	std::set<size_t>& getGroundTruthLabels();
-
-	/**
-	 * Get all the reconstruction labels.
-	 */
-	std::set<size_t>& getReconstructionLabels();
-
-	/**
-	 * Get all reconstruction labels that might be assigned to a given 
-	 * ground-truth label.
-	 */
-	std::set<size_t>& getPossibleMatchesByGt(size_t gtLabel);
-
-	/**
-	 * Get all ground-truth labels that might be assigned to a given 
-	 * reconstruction label.
-	 */
-	std::set<size_t>& getPossibleMathesByRec(size_t recLabel);
+	std::shared_ptr<Cells> extractCells(
+			const ImageStack& gtLabels,
+			const ImageStack& recLabels);
 
 protected:
 
-	void registerPossibleMatch(size_t gtLabel, size_t recLabel);
-
-	// all extracted cells
-	cells_t _cells;
-
-	// the size of one voxel
-	float _resolutionX;
-	float _resolutionY;
-	float _resolutionZ;
-
-private:
-
-	// set of all ground truth labels
-	std::set<size_t> _groundTruthLabels;
-
-	// set of all reconstruction labels
-	std::set<size_t> _reconstructionLabels;
-
-	// all possible label matchings, from ground truth to reconstruction
-	std::map<size_t, std::set<size_t> > _possibleGroundTruthMatches;
-
-	// all possible label matchings, from reconstruction to ground truth
-	std::map<size_t, std::set<size_t> > _possibleReconstructionMatches;
-
-	// map from rec labels to maps from gt label to cell indices
-	std::map<size_t, std::map<size_t, std::vector<unsigned int> > > _cellsByRecToGtLabel;
+	/**
+	 * Do be overwritten by subclasses.
+	 */
+	virtual void findPossibleCellLabels(
+			std::shared_ptr<Cells> cells,
+			const ImageStack& gtLabels,
+			const ImageStack& recLabels) = 0;
 };
 
 #endif // TED_EVALUATION_LOCAL_TOLERANCE_FUNCTION_H__

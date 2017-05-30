@@ -27,7 +27,7 @@ TolerantEditDistanceErrors::TolerantEditDistanceErrors(size_t gtBackgroundLabel,
 }
 
 void
-TolerantEditDistanceErrors::setCells(cells_t cells) {
+TolerantEditDistanceErrors::setCells(std::shared_ptr<Cells> cells) {
 
 	_cells = cells;
 	clear();
@@ -170,8 +170,7 @@ TolerantEditDistanceErrors::getSplits(size_t gtLabel) {
 
 	std::set<size_t> splitLabels;
 
-	typedef cell_map_t::mapped_type::value_type cells_t;
-	for (const cells_t& cells : getSplitCells(gtLabel))
+	for (const auto& cells : getSplitCells(gtLabel))
 		splitLabels.insert(cells.first);
 
 	return splitLabels;
@@ -182,8 +181,7 @@ TolerantEditDistanceErrors::getMerges(size_t recLabel) {
 
 	std::set<size_t> mergeLabels;
 
-	typedef cell_map_t::mapped_type::value_type cells_t;
-	for (const cells_t& cells : getMergeCells(recLabel))
+	for (const auto& cells : getMergeCells(recLabel))
 		mergeLabels.insert(cells.first);
 
 	return mergeLabels;
@@ -197,8 +195,7 @@ TolerantEditDistanceErrors::getFalsePositives() {
 
 	std::set<size_t> splitLabels;
 
-	typedef cell_map_t::mapped_type::value_type cells_t;
-	for (const cells_t& cells : getSplitCells(_gtBackgroundLabel))
+	for (const auto& cells : getSplitCells(_gtBackgroundLabel))
 		if (cells.first != _recBackgroundLabel)
 			splitLabels.insert(cells.first);
 
@@ -213,8 +210,7 @@ TolerantEditDistanceErrors::getFalseNegatives() {
 
 	std::set<size_t> mergeLabels;
 
-	typedef cell_map_t::mapped_type::value_type cells_t;
-	for (const cells_t& cells : getMergeCells(_recBackgroundLabel))
+	for (const auto& cells : getMergeCells(_recBackgroundLabel))
 		if (cells.first != _gtBackgroundLabel)
 			mergeLabels.insert(cells.first);
 

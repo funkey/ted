@@ -82,20 +82,17 @@ public:
 	/**
 	 * Add an alternative label for this cell.
 	 */
-	void addAlternativeLabel(LabelType k) {
+	void addPossibleLabel(LabelType k) {
 
-		if (_label == k)
-			return;
-
-		_alternativeLabels.insert(k);
+		_possibleLabels.insert(k);
 	}
 
 	/**
 	 * Get the current list of alternative labels for this cell.
 	 */
-	const std::set<LabelType>& getAlternativeLabels() const {
+	const std::set<LabelType>& getPossibleLabels() const {
 
-		return _alternativeLabels;
+		return _possibleLabels;
 	}
 
 	/**
@@ -174,9 +171,8 @@ private:
 	// the real label of this cell
 	LabelType _groundTruthLabel;
 
-	// possible other reconstruction labels, according to the tolerance 
-	// criterion
-	std::set<LabelType> _alternativeLabels;
+	// possible reconstruction labels, according to the tolerance criterion
+	std::set<LabelType> _possibleLabels;
 
 	// the volume locations that constitute this cell
 	std::vector<Location> _content;
