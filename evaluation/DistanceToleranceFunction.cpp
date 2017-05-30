@@ -57,16 +57,14 @@ DistanceToleranceFunction::extractCells(
 				(*_cells)[cellIndex].setGroundTruthLabel(gtLabel);
 
 				maxBoundaryDistances[cellIndex] = std::max(maxBoundaryDistances[cellIndex], _boundaryDistance2(x, y, z));
-
-				if (foundCells.count(cellIndex) == 0) {
-
-					registerPossibleMatch(gtLabel, recLabel);
-					foundCells.insert(cellIndex);
-				}
+				foundCells.insert(cellIndex);
 			}
 	}
 
 	findRelabelCandidates(maxBoundaryDistances);
+
+	for (auto& cell : *_cells)
+		registerPossibleMatch(cell.getGroundTruthLabel(), cell.getReconstructionLabel());
 
 	enumerateCellLabels(recLabels);
 }
