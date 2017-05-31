@@ -40,17 +40,10 @@ SkeletonToleranceFunction::findRelabelCandidates(
 		Cell<size_t>& cell = (*cells)[cellIndex];
 
 		// a skeleton cell?
-		if (cell.getGroundTruthLabel() != _gtBackgroundLabel) {
+		if (cell.getGroundTruthLabel() != _ignoreLabel) {
 
 			// add all skeleton cells to the relabel candidates
 			relabelCandidates.push_back(cellIndex);
-
-		} else {
-
-			// non-sekeleton cells are hard-wired to the ignore label, there is 
-			// nothing to do for them
-			cell.setReconstructionLabel(_ignoreLabel);
-			cell.setGroundTruthLabel(_ignoreLabel);
 		}
 	}
 
