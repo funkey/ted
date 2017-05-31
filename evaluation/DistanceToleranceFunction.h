@@ -25,8 +25,8 @@ public:
 
 	virtual void findPossibleCellLabels(
 			std::shared_ptr<Cells> cells,
-			const ImageStack& recLabels,
-			const ImageStack& gtLabels) override;
+			const ImageStack& gtLabels,
+			const ImageStack& recLabels) override;
 
 protected:
 

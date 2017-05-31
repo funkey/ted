@@ -16,8 +16,8 @@ DistanceToleranceFunction::DistanceToleranceFunction(
 void
 DistanceToleranceFunction::findPossibleCellLabels(
 		std::shared_ptr<Cells> cells,
-		const ImageStack& recLabels,
-		const ImageStack& gtLabels) {
+		const ImageStack& gtLabels,
+		const ImageStack& recLabels) {
 
 	initializeCellLabels(cells);
 
