@@ -311,15 +311,18 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 	// the least changes -- therefore, we add a small value for each of those 
 	// variables that can not sum up to one and therefor does not change the 
 	// number of splits and merges
+	size_t maxChange = 0;
+	for (const Cell<size_t>& cell : cells)
+		if (cell.getPossibleLabels().size() > 1)
+			maxChange += cell.size();
 	unsigned int ind;
 	size_t cellSize;
-	double volumeSize = _width*_height*_depth;
 	for (auto& p : _alternativeIndicators) {
 	
 		ind = p.first;
 		cellSize = p.second;
 
-		objective.setCoefficient(ind, static_cast<double>(cellSize)/(volumeSize + 1));
+		objective.setCoefficient(ind, static_cast<double>(cellSize)/(maxChange + 1));
 	}
 	objective.setSense(Minimize);
 
