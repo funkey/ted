@@ -359,6 +359,9 @@ TolerantEditDistance::correctReconstruction(const Cells& cells) {
 			size_t        recLabel   = _labelingByVar[i].second;
 			const Cell<size_t>& cell = cells[cellIndex];
 
+			if (_parameters.fromSkeleton && recLabel == (size_t)-1)
+				recLabel = _parameters.recBackgroundLabel;
+
 			for (const Cell<size_t>::Location& l : cell)
 				(*_correctedReconstruction[l.z])(l.x, l.y) = recLabel;
 		}
