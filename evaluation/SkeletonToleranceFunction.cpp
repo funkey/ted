@@ -3,37 +3,58 @@
 
 logger::LogChannel skeletontolerancelog("skeletontolerancelog", "[SkeletonToleranceFunction] ");
 
-//void
-//SkeletonToleranceFunction::findRelabelCandidates(const std::vector<float>& maxBoundaryDistances) {
+void
+SkeletonToleranceFunction::initializeCellLabels(std::shared_ptr<Cells> cells) {
 
-	//LOG_DEBUG(skeletontolerancelog) << "finding relabel candidates..." << std::endl;
+	LOG_DEBUG(skeletontolerancelog) << "intializing cells..." << std::endl;
 
-	//_relabelCandidates.clear();
-	//for (unsigned int cellIndex = 0; cellIndex < maxBoundaryDistances.size(); cellIndex++) {
+	for (unsigned int cellIndex = 0; cellIndex < cells->size(); cellIndex++) {
 
-		//if (isSkeletonCell(cellIndex)) {
+		Cell<size_t>& cell = (*cells)[cellIndex];
 
-			//// add all skeleton cells to the relabel candidates
-			//_relabelCandidates.push_back(cellIndex);
+		// not a skeleton cell?
+		if (cell.getGroundTruthLabel() == _gtBackgroundLabel) {
 
-		//} else {
+			// non-sekeleton cells are hard-wired to the ignore label, there is 
+			// nothing to do for them
+			cell.setReconstructionLabel(_ignoreLabel);
+			cell.setGroundTruthLabel(_ignoreLabel);
+		}
 
-			//// non-sekelton cells are hard-wired to the ignore label, there is 
-			//// nothing to do for them
-			//cell_t& cell = (*_cells)[cellIndex];
-			//cell.setReconstructionLabel(_ignoreLabel);
-			//cell.setGroundTruthLabel(_ignoreLabel);
-		//}
-	//}
-	//registerPossibleMatch(_ignoreLabel, _ignoreLabel);
+		cell.addPossibleLabel(cell.getReconstructionLabel());
+	}
 
-	//LOG_DEBUG(skeletontolerancelog) << "done" << std::endl;
-//}
+}
 
-//bool
-//SkeletonToleranceFunction::isSkeletonCell(unsigned int cellIndex) {
+std::vector<size_t>
+SkeletonToleranceFunction::findRelabelCandidates(
+		std::shared_ptr<Cells> cells,
+		const ImageStack& recLabels,
+		const ImageStack& gtLabels) {
 
-	//// a cell is a skeleton cell, if its ground truth label is not the 
-	//// background
-	//return (*_cells)[cellIndex].getGroundTruthLabel() != _gtBackgroundLabel;
-//}
+	LOG_DEBUG(skeletontolerancelog) << "finding relabel candidates..." << std::endl;
+
+	std::vector<size_t> relabelCandidates;
+	for (unsigned int cellIndex = 0; cellIndex < cells->size(); cellIndex++) {
+
+		Cell<size_t>& cell = (*cells)[cellIndex];
+
+		// a skeleton cell?
+		if (cell.getGroundTruthLabel() != _gtBackgroundLabel) {
+
+			// add all skeleton cells to the relabel candidates
+			relabelCandidates.push_back(cellIndex);
+
+		} else {
+
+			// non-sekeleton cells are hard-wired to the ignore label, there is 
+			// nothing to do for them
+			cell.setReconstructionLabel(_ignoreLabel);
+			cell.setGroundTruthLabel(_ignoreLabel);
+		}
+	}
+
+	LOG_DEBUG(skeletontolerancelog) << "done" << std::endl;
+
+	return relabelCandidates;
+}

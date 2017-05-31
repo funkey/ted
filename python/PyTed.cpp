@@ -88,11 +88,13 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 		}
 
 		boost::python::list fps;
-		for (size_t l : errors.getFalsePositives())
-			fps.append(l);
+		if (tedParameters.reportFPsFNs)
+			for (size_t l : errors.getFalsePositives())
+				fps.append(l);
 		boost::python::list fns;
-		for (size_t l : errors.getFalseNegatives())
-			fns.append(l);
+		if (tedParameters.reportFPsFNs)
+			for (size_t l : errors.getFalseNegatives())
+				fns.append(l);
 
 		boost::python::list matches;
 		for (auto& p : errors.getMatches())
@@ -100,15 +102,17 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 
 		summary["ted_split"] = errors.getNumSplits();
 		summary["ted_merge"] = errors.getNumMerges();
-		summary["ted_fp"] = errors.getNumFalsePositives();
-		summary["ted_fn"] = errors.getNumFalseNegatives();
-		summary["ted_inference_time"] = errors.getInferenceTime();
-		summary["ted_num_variables"] = errors.getNumVariables();
 		summary["splits"] = splits;
 		summary["merges"] = merges;
-		summary["fps"] = fps;
-		summary["fns"] = fns;
 		summary["matches"] = matches;
+		if (tedParameters.reportFPsFNs) {
+			summary["ted_fp"] = errors.getNumFalsePositives();
+			summary["ted_fn"] = errors.getNumFalseNegatives();
+			summary["fps"] = fps;
+			summary["fns"] = fns;
+		}
+		summary["ted_inference_time"] = errors.getInferenceTime();
+		summary["ted_num_variables"] = errors.getNumVariables();
 
 		if (corrected != 0)
 			imageStackToArray(ted.getCorrectedReconstruction(), corrected);

@@ -19,16 +19,14 @@ DistanceToleranceFunction::findPossibleCellLabels(
 		const ImageStack& recLabels,
 		const ImageStack& gtLabels) {
 
-	// every cell can at least keep it's original label
-	for (auto& cell : *cells)
-		cell.addPossibleLabel(cell.getReconstructionLabel());
+	initializeCellLabels(cells);
 
 	_depth  = gtLabels.size();
 	_width  = gtLabels.width();
 	_height = gtLabels.height();
-	_resolutionX = recLabels.getResolutionX();
-	_resolutionY = recLabels.getResolutionY();
-	_resolutionZ = recLabels.getResolutionZ();
+	_resolutionX = gtLabels.getResolutionX();
+	_resolutionY = gtLabels.getResolutionY();
+	_resolutionZ = gtLabels.getResolutionZ();
 
 	createBoundaryMap(recLabels);
 
@@ -101,6 +99,14 @@ DistanceToleranceFunction::findPossibleCellLabels(
 			//LOG_ALL(distancetolerancelog) << recLabel << " ";
 		//LOG_ALL(distancetolerancelog) << std::endl;
 	//}
+}
+
+void
+DistanceToleranceFunction::initializeCellLabels(std::shared_ptr<Cells> cells) {
+
+	// every cell can at least keep it's original label
+	for (auto& cell : *cells)
+		cell.addPossibleLabel(cell.getReconstructionLabel());
 }
 
 std::vector<size_t>

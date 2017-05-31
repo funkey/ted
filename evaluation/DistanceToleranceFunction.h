@@ -31,6 +31,14 @@ public:
 protected:
 
 	/**
+	 * Initialize cells, before an expensive search for possible labels. This is 
+	 * the last chance to change a cell's reconstruction label.
+	 *
+	 * Can be refined in subclasses.
+	 */
+	virtual void initializeCellLabels(std::shared_ptr<Cells> cells);
+
+	/**
 	 * Find cells that can potentially be relabelled. This is mainly to exlude 
 	 * cells from consideration to speed things up.
 	 *

@@ -21,12 +21,16 @@ public:
 		_gtBackgroundLabel(gtBackgroundLabel),
 		_ignoreLabel((size_t)(-1)) {}
 
-//private:
+private:
 
-	//// for the skeleton criterion, each cell is allowed to be relabeled
-	//virtual void findRelabelCandidates(const std::vector<float>& maxBoundaryDistances);
+	virtual void initializeCellLabels(std::shared_ptr<Cells> cells) override;
 
-	//bool isSkeletonCell(unsigned int cellIndex);
+	// for the skeleton criterion, only skeleton cells are allowed to be 
+	// relabelled
+	virtual std::vector<size_t> findRelabelCandidates(
+			std::shared_ptr<Cells> cells,
+			const ImageStack& recLabels,
+			const ImageStack& gtLabels) override;
 
 	size_t _gtBackgroundLabel;
 
