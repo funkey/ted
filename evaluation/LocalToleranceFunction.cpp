@@ -38,7 +38,7 @@ LocalToleranceFunction::extractCells(
 	// find connected components in gt and rec image
 
 	cellIds = 0;
-	size_t numCells = vigra::labelMultiArray(gtAndRec, cellIds);
+	size_t numCells = vigra::labelMultiArray(gtAndRec, cellIds, vigra::IndirectNeighborhood);
 
 	LOG_DEBUG(localtolerancefunctionlog) << "found " << numCells << " cells" << std::endl;
 
