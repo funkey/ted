@@ -3,6 +3,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 #include <util/exceptions.h>
+#include <git_sha1.h>
 #include "PyTed.h"
 #include "logging.h"
 
@@ -56,6 +57,12 @@ void translateException(const Exception& e) {
 		PyErr_SetString(PyExc_RuntimeError, e.what());
 }
 
+std::string
+getVersion() {
+
+	return __git_sha1;
+}
+
 /**
  * Defines all the python classes in the module libpyted. Here we decide 
  * which functions and data members we wish to expose.
@@ -74,6 +81,8 @@ BOOST_PYTHON_MODULE(pyted) {
 			;
 	boost::python::def("setLogLevel", setLogLevel);
 	boost::python::def("getLogLevel", getLogLevel);
+
+	boost::python::def("version", getVersion);
 
 	boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
 
