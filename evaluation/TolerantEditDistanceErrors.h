@@ -17,6 +17,18 @@ public:
 	typedef std::map<size_t, std::map<size_t, std::set<unsigned int> > > cell_map_t;
 
 	/**
+	 * Represents match between a ground-truth label and a reconstruction label, 
+	 * after optimization. 'overlap' is the number of all voxels with 'gtLabel' 
+	 * and 'recLabel'.
+	 */
+	struct Match {
+
+		size_t gtLabel;
+		size_t recLabel;
+		size_t overlap;
+	};
+
+	/**
 	 * Create an empty errors data structure without using a background label, 
 	 * i.e., without false positives and false negatives.
 	 */
@@ -75,7 +87,7 @@ public:
 	 * Get the confusion matrix, i.e., matches between ground truth and 
 	 * reconstruction.
 	 */
-	std::vector<std::pair<size_t,size_t>> getMatches();
+	std::vector<Match> getMatches();
 
 	/**
 	 * Get the number of locations shared by the given ground truth and 

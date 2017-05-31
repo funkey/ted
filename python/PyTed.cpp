@@ -97,8 +97,12 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 				fns.append(l);
 
 		boost::python::list matches;
-		for (auto& p : errors.getMatches())
-			matches.append(boost::python::make_tuple(p.first, p.second));
+		for (TolerantEditDistanceErrors::Match& match : errors.getMatches())
+			matches.append(
+					boost::python::make_tuple(
+							match.gtLabel,
+							match.recLabel,
+							match.overlap));
 
 		summary["ted_split"] = errors.getNumSplits();
 		summary["ted_merge"] = errors.getNumMerges();

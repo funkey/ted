@@ -78,10 +78,10 @@ TolerantEditDistanceErrors::getGroundTruthLabels(size_t recLabel) {
 	return gtLabels;
 }
 
-std::vector<std::pair<size_t,size_t>>
+std::vector<TolerantEditDistanceErrors::Match>
 TolerantEditDistanceErrors::getMatches() {
 
-	std::vector<std::pair<size_t,size_t>> matches;
+	std::vector<Match> matches;
 
 	for (auto& p_gt : _cellsByGtToRecLabel) {
 
@@ -90,7 +90,12 @@ TolerantEditDistanceErrors::getMatches() {
 		for (auto& p_rec : p_gt.second) {
 
 			size_t rec_label = p_rec.first;
-			matches.push_back(std::make_pair(gt_label, rec_label));
+
+			Match match;
+			match.gtLabel = gt_label;
+			match.recLabel = rec_label;
+			match.overlap = getOverlap(gt_label, rec_label);
+			matches.push_back(match);
 		}
 	}
 
