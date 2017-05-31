@@ -92,8 +92,8 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 
 		for (size_t l : cell.getPossibleLabels()) {
 
-			possibleMatchesByGt[cell.getGroundTruthLabel()].insert(cell.getReconstructionLabel());
-			possibleMatchesByRec[cell.getReconstructionLabel()].insert(cell.getGroundTruthLabel());
+			possibleMatchesByGt[cell.getGroundTruthLabel()].insert(l);
+			possibleMatchesByRec[l].insert(cell.getGroundTruthLabel());
 		}
 	}
 
@@ -118,9 +118,6 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 
 		// first indicator variable for this cell
 		unsigned int begin = var;
-
-		//// one variable for the default label
-		//assignIndicatorVariable(var++, cellIndex, cell.getGroundTruthLabel(), cell.getReconstructionLabel());
 
 		// one variable for each possible label
 		for (size_t l : cell.getPossibleLabels()) {
