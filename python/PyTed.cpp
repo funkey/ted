@@ -97,18 +97,35 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 				fns.append(l);
 
 		boost::python::list matches;
-		for (TolerantEditDistanceErrors::Match& match : errors.getMatches())
+		for (const TolerantEditDistanceErrors::Match& match : errors.getMatches())
 			matches.append(
 					boost::python::make_tuple(
 							match.gtLabel,
 							match.recLabel,
 							match.overlap));
 
+		boost::python::list splitLocations;
+		for (const TolerantEditDistanceErrors::SplitLocation& splitLocation : errors.localizeSplitErrors()) {
+
+			boost::python::dict split_location;
+			split_location["gt_label"] = splitLocation.gtLabel;
+			split_location["rec_label_1"] = splitLocation.recLabel1;
+			split_location["rec_label_2"] = splitLocation.recLabel2;
+			split_location["distance"] = splitLocation.distance;
+			split_location["location"] = boost::python::make_tuple(
+					splitLocation.location.z*groundTruth.getResolutionZ(),
+					splitLocation.location.y*groundTruth.getResolutionY(),
+					splitLocation.location.x*groundTruth.getResolutionX());
+
+			splitLocations.append(split_location);
+		}
+
 		summary["ted_split"] = errors.getNumSplits();
 		summary["ted_merge"] = errors.getNumMerges();
 		summary["splits"] = splits;
 		summary["merges"] = merges;
 		summary["matches"] = matches;
+		summary["split_locations"] = splitLocations;
 		if (tedParameters.reportFPsFNs) {
 			summary["ted_fp"] = errors.getNumFalsePositives();
 			summary["ted_fn"] = errors.getNumFalseNegatives();

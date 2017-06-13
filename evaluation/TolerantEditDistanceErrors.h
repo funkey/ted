@@ -28,6 +28,30 @@ public:
 		size_t overlap;
 	};
 
+	struct SplitLocation {
+
+		SplitLocation() :
+			gtLabel(0),
+			recLabel1(0),
+			recLabel2(0),
+			distance(0),
+			location(0,0,0) {}
+
+		// which GT label is split
+		size_t gtLabel;
+
+		// the two REC labels that split the GT
+		size_t recLabel1;
+		size_t recLabel2;
+
+		// the minimal distance between the two REC labels
+		double distance;
+
+		// the location of the split, between the closest locations of the two 
+		// REC labels
+		Cell<size_t>::Location location;
+	};
+
 	/**
 	 * Create an empty errors data structure without using a background label, 
 	 * i.e., without false positives and false negatives.
@@ -161,6 +185,14 @@ public:
 	const cell_map_t::mapped_type& getFalseNegativeCells();
 
 	/**
+	 * Get the (approximate) locations of split errors.
+	 *
+	 * The locations are between the two closest points of two GT regions that 
+	 * are considered split by the reconstruction.
+	 */
+	std::vector<SplitLocation> localizeSplitErrors();
+
+	/**
 	 * Check whether a background label was considered for the TED errors. If 
 	 * yes, some of the split and merge errors have an interpretation as false 
 	 * positives and false negatives.
@@ -187,6 +219,10 @@ private:
 			unsigned int&     numSplits,
 			unsigned int&     numFalsePositives,
 			size_t             backgroundLabel);
+
+	SplitLocation findSplitLocation(
+			const std::set<unsigned int>& cells1,
+			const std::set<unsigned int>& cells2);
 
 	// a list of cells partitioning the image
 	std::shared_ptr<Cells> _cells;

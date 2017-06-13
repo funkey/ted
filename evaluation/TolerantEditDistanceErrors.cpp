@@ -256,6 +256,124 @@ TolerantEditDistanceErrors::getFalseNegativeCells() {
 	return _merges[_recBackgroundLabel];
 }
 
+std::vector<TolerantEditDistanceErrors::SplitLocation>
+TolerantEditDistanceErrors::localizeSplitErrors() {
+
+	std::vector<SplitLocation> mstSplitLocations;
+
+	// for every GT label
+	for (const auto& p : _splits) {
+
+		size_t gtLabel = p.first;
+
+		std::vector<SplitLocation> locations;
+
+		// for all pairs of labels that split gtLabel
+		for (const auto& q : p.second) {
+
+			size_t recLabel1 = q.first;
+			std::set<unsigned int> splitCells1 = _cellsByGtToRecLabel[gtLabel][recLabel1];
+
+			for (const auto& r : p.second) {
+
+				size_t recLabel2 = r.first;
+
+				if (recLabel2 <= recLabel1)
+					continue;
+
+				std::set<unsigned int> splitCells2 = _cellsByGtToRecLabel[gtLabel][recLabel2];
+
+				locations.push_back(findSplitLocation(splitCells1, splitCells2));
+			}
+		}
+
+		// sort split locations by distance
+		std::sort(
+				locations.begin(),
+				locations.end(),
+				[](const SplitLocation& s1, const SplitLocation& s2)
+					{ return s1.distance < s2.distance; }
+		);
+
+		// find a minimal spanning tree of split locations
+		std::map<size_t, size_t> component;
+		for (const SplitLocation& split : locations) {
+
+			component[split.recLabel1] = split.recLabel1;
+			component[split.recLabel2] = split.recLabel2;
+		}
+
+		for (const SplitLocation& split : locations) {
+
+			if (component[split.recLabel1] == component[split.recLabel2])
+				continue;
+
+			mstSplitLocations.push_back(split);
+			for (auto& p : component)
+				if (p.second == split.recLabel2)
+					p.second = split.recLabel1;
+		}
+	}
+
+	return mstSplitLocations;
+}
+
+TolerantEditDistanceErrors::SplitLocation
+TolerantEditDistanceErrors::findSplitLocation(
+		const std::set<unsigned int>& cells1,
+		const std::set<unsigned int>& cells2) {
+
+	if (cells1.size()*cells2.size() == 0)
+		UTIL_THROW_EXCEPTION(SizeMismatchError, "can not find split location for empty set of cells");
+
+	SplitLocation split;
+
+	double minDistance = std::numeric_limits<double>::infinity();
+	Cell<size_t>::Location closest1(0,0,0);
+	Cell<size_t>::Location closest2(0,0,0);
+
+	bool initSplit = true;
+
+	for (unsigned int i : cells1) {
+
+		const Cell<size_t>& cell1 = (*_cells)[i];
+
+		for (unsigned int j : cells2) {
+
+			const Cell<size_t>& cell2 = (*_cells)[j];
+
+			if (initSplit) {
+
+				split.gtLabel = cell1.getGroundTruthLabel();
+				split.recLabel1 = cell1.getReconstructionLabel();
+				split.recLabel2 = cell2.getReconstructionLabel();
+				initSplit = false;
+			}
+
+			for (const Cell<size_t>::Location& l1 : cell1) {
+				for (const Cell<size_t>::Location& l2 : cell2) {
+
+					double distance2 = pow(l1.x-l2.x,2)*pow(l1.y-l2.y,2)*pow(l1.z-l2.z,2);
+					if (distance2 <= minDistance) {
+
+						closest1 = l1;
+						closest2 = l2;
+						minDistance = distance2;
+					}
+				}
+			}
+		}
+	}
+
+	split.distance = sqrt(minDistance);
+	split.location = Cell<size_t>::Location(
+			(closest1.x+closest2.x)*0.5,
+			(closest1.y+closest2.y)*0.5,
+			(closest1.z+closest2.z)*0.5);
+
+	return split;
+}
+
 void
 TolerantEditDistanceErrors::updateErrorCounts() {
 
