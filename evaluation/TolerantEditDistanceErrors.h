@@ -28,14 +28,15 @@ public:
 		size_t overlap;
 	};
 
-	struct SplitLocation {
+	struct SplitError {
 
-		SplitLocation() :
+		SplitError() :
 			gtLabel(0),
 			recLabel1(0),
 			recLabel2(0),
 			distance(0),
-			location(0,0,0) {}
+			location(0,0,0),
+			size(0) {}
 
 		// which GT label is split
 		size_t gtLabel;
@@ -50,6 +51,9 @@ public:
 		// the location of the split, between the closest locations of the two 
 		// REC labels
 		Cell<size_t>::Location location;
+
+		// the size of the split-off
+		size_t size;
 	};
 
 	/**
@@ -185,12 +189,19 @@ public:
 	const cell_map_t::mapped_type& getFalseNegativeCells();
 
 	/**
-	 * Get the (approximate) locations of split errors.
+	 * Get a vector of all split errors, containing the locations and sizes of 
+	 * the errors.
 	 *
 	 * The locations are between the two closest points of two GT regions that 
 	 * are considered split by the reconstruction.
+	 *
+	 * For the sizes, the largest split region is considered a match, and all 
+	 * other split regions contribute with their size. If, for example, GT label 
+	 * A was split into B, C, and D, with overlaps of 1, 3, 2, respectively, 
+	 * this function will return two split errors C-B and C-D with sizes 1 and 
+	 * 2.
 	 */
-	std::vector<SplitLocation> localizeSplitErrors();
+	std::vector<SplitError> getSplitErrors();
 
 	/**
 	 * Check whether a background label was considered for the TED errors. If 
@@ -220,7 +231,7 @@ private:
 			unsigned int&     numFalsePositives,
 			size_t             backgroundLabel);
 
-	SplitLocation findSplitLocation(
+	SplitError computeSplitError(
 			const std::set<unsigned int>& cells1,
 			const std::set<unsigned int>& cells2);
 

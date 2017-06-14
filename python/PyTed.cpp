@@ -104,20 +104,21 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 							match.recLabel,
 							match.overlap));
 
-		boost::python::list splitLocations;
-		for (const TolerantEditDistanceErrors::SplitLocation& splitLocation : errors.localizeSplitErrors()) {
+		boost::python::list splitErrors;
+		for (const TolerantEditDistanceErrors::SplitError& splitError : errors.getSplitErrors()) {
 
-			boost::python::dict split_location;
-			split_location["gt_label"] = splitLocation.gtLabel;
-			split_location["rec_label_1"] = splitLocation.recLabel1;
-			split_location["rec_label_2"] = splitLocation.recLabel2;
-			split_location["distance"] = splitLocation.distance;
-			split_location["location"] = boost::python::make_tuple(
-					splitLocation.location.z*groundTruth.getResolutionZ(),
-					splitLocation.location.y*groundTruth.getResolutionY(),
-					splitLocation.location.x*groundTruth.getResolutionX());
+			boost::python::dict split_error;
+			split_error["gt_label"] = splitError.gtLabel;
+			split_error["rec_label_1"] = splitError.recLabel1;
+			split_error["rec_label_2"] = splitError.recLabel2;
+			split_error["distance"] = splitError.distance;
+			split_error["location"] = boost::python::make_tuple(
+					splitError.location.z*groundTruth.getResolutionZ(),
+					splitError.location.y*groundTruth.getResolutionY(),
+					splitError.location.x*groundTruth.getResolutionX());
+			split_error["size"] = splitError.size;
 
-			splitLocations.append(split_location);
+			splitErrors.append(split_error);
 		}
 
 		summary["ted_split"] = errors.getNumSplits();
@@ -125,7 +126,7 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 		summary["splits"] = splits;
 		summary["merges"] = merges;
 		summary["matches"] = matches;
-		summary["split_locations"] = splitLocations;
+		summary["split_errors"] = splitErrors;
 		if (tedParameters.reportFPsFNs) {
 			summary["ted_fp"] = errors.getNumFalsePositives();
 			summary["ted_fn"] = errors.getNumFalseNegatives();

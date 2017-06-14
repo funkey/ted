@@ -1,3 +1,4 @@
+#include <queue>
 #include <boost/timer/timer.hpp>
 #include <boost/range/adaptors.hpp>
 #include <util/exceptions.h>
@@ -256,17 +257,21 @@ TolerantEditDistanceErrors::getFalseNegativeCells() {
 	return _merges[_recBackgroundLabel];
 }
 
-std::vector<TolerantEditDistanceErrors::SplitLocation>
-TolerantEditDistanceErrors::localizeSplitErrors() {
+std::vector<TolerantEditDistanceErrors::SplitError>
+TolerantEditDistanceErrors::getSplitErrors() {
 
-	std::vector<SplitLocation> mstSplitLocations;
+	std::vector<SplitError> mstSplitErrors;
 
 	// for every GT label
 	for (const auto& p : _splits) {
 
 		size_t gtLabel = p.first;
 
-		std::vector<SplitLocation> locations;
+		// map from REC label x REC label to split error
+		std::map<size_t, std::map<size_t, SplitError>> splitErrors;
+
+		size_t maxOverlapRecLabel = 0;
+		size_t maxOverlap = 0;
 
 		// for all pairs of labels that split gtLabel
 		for (const auto& q : p.second) {
@@ -274,59 +279,78 @@ TolerantEditDistanceErrors::localizeSplitErrors() {
 			size_t recLabel1 = q.first;
 			std::set<unsigned int> splitCells1 = _cellsByGtToRecLabel[gtLabel][recLabel1];
 
+			// find max overlap REC label
+			size_t overlap = 0;
+			for (unsigned int cellIndex : splitCells1)
+				overlap += (*_cells)[cellIndex].size();
+			if (overlap >= maxOverlap) {
+
+				maxOverlap = overlap;
+				maxOverlapRecLabel = recLabel1;
+			}
+
+			// comput split errors to all other REC labels splitting the current 
+			// GT label
 			for (const auto& r : p.second) {
 
 				size_t recLabel2 = r.first;
 
+				// assert recLabel1 < recLabel2
 				if (recLabel2 <= recLabel1)
 					continue;
 
 				std::set<unsigned int> splitCells2 = _cellsByGtToRecLabel[gtLabel][recLabel2];
 
-				locations.push_back(findSplitLocation(splitCells1, splitCells2));
+				SplitError splitError = computeSplitError(splitCells1, splitCells2);
+				splitErrors[recLabel1][recLabel2] = splitError;
+				splitErrors[recLabel2][recLabel1] = splitError;
 			}
 		}
 
-		// sort split locations by distance
-		std::sort(
-				locations.begin(),
-				locations.end(),
-				[](const SplitLocation& s1, const SplitLocation& s2)
-					{ return s1.distance < s2.distance; }
-		);
+		auto cmp = [](const SplitError& a, const SplitError& b) { return a.distance > b.distance; };
+		std::priority_queue<SplitError, std::vector<SplitError>, decltype(cmp)> mstBoundary(cmp);
+		std::set<size_t> inTree;
 
-		// find a minimal spanning tree of split locations
-		std::map<size_t, size_t> component;
-		for (const SplitLocation& split : locations) {
+		// start growing from the maxOverlapRecLabel
+		inTree.insert(maxOverlapRecLabel);
+		for (const auto& p : splitErrors[maxOverlapRecLabel])
+			mstBoundary.push(p.second);
 
-			component[split.recLabel1] = split.recLabel1;
-			component[split.recLabel2] = split.recLabel2;
-		}
+		// grow the MST
+		while (mstBoundary.size() > 0) {
 
-		for (const SplitLocation& split : locations) {
+			SplitError splitError = mstBoundary.top();
+			mstBoundary.pop();
 
-			if (component[split.recLabel1] == component[split.recLabel2])
-				continue;
+			// get the label to add
+			size_t newLabel = inTree.count(splitError.recLabel1) ? splitError.recLabel2 : splitError.recLabel1;
 
-			mstSplitLocations.push_back(split);
-			for (auto& p : component)
-				if (p.second == split.recLabel2)
-					p.second = split.recLabel1;
+			// get the overlap of this label with the GT label
+			size_t overlap = 0;
+			for (unsigned int cellIndex : _cellsByGtToRecLabel[gtLabel][newLabel])
+				overlap += (*_cells)[cellIndex].size();
+
+			splitError.size = overlap;
+			mstSplitErrors.push_back(splitError);
+
+			for (const auto& p : splitErrors[newLabel])
+				if (!inTree.count(p.first))
+					mstBoundary.push(p.second);
 		}
 	}
 
-	return mstSplitLocations;
+	return mstSplitErrors;
 }
 
-TolerantEditDistanceErrors::SplitLocation
-TolerantEditDistanceErrors::findSplitLocation(
+TolerantEditDistanceErrors::SplitError
+TolerantEditDistanceErrors::computeSplitError(
 		const std::set<unsigned int>& cells1,
 		const std::set<unsigned int>& cells2) {
 
 	if (cells1.size()*cells2.size() == 0)
 		UTIL_THROW_EXCEPTION(SizeMismatchError, "can not find split location for empty set of cells");
 
-	SplitLocation split;
+	SplitError split;
 
 	double minDistance = std::numeric_limits<double>::infinity();
 	Cell<size_t>::Location closest1(0,0,0);
