@@ -402,7 +402,11 @@ TolerantEditDistanceErrors::computeError(
 			for (const Cell<size_t>::Location& l1 : cell1) {
 				for (const Cell<size_t>::Location& l2 : cell2) {
 
-					double distance2 = pow(l1.x-l2.x,2)*pow(l1.y-l2.y,2)*pow(l1.z-l2.z,2);
+					int dx = (int)(l1.x)-l2.x;
+					int dy = (int)(l1.y)-l2.y;
+					int dz = (int)(l1.z)-l2.z;
+
+					double distance2 = pow(dx,2)+pow(dy,2)+pow(dz,2);
 					if (distance2 <= minDistance) {
 
 						closest1 = l1;
