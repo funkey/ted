@@ -260,12 +260,14 @@ TolerantEditDistanceErrors::getFalseNegativeCells() {
 std::vector<TolerantEditDistanceErrors::SplitError>
 TolerantEditDistanceErrors::getSplitErrors() {
 
+	LOG_DEBUG(errorslog) << "getting split errors (X=GT, Y=REC)" << std::endl;
 	return getGenericSplitErrors<SplitError>(_splits, _cellsByGtToRecLabel);
 }
 
 std::vector<TolerantEditDistanceErrors::MergeError>
 TolerantEditDistanceErrors::getMergeErrors() {
 
+	LOG_DEBUG(errorslog) << "getting split errors (X=REC, Y=GR)" << std::endl;
 	return getGenericSplitErrors<MergeError>(_merges, _cellsByRecToGtLabel);
 }
 
@@ -276,6 +278,8 @@ TolerantEditDistanceErrors::getGenericSplitErrors(
 		cell_map_t& cellsByGtToRecLabel) {
 
 	std::vector<ErrorType> mstSplitErrors;
+
+	LOG_DEBUG(errorslog) << "searching for error locations and sizes..." << std::endl;
 
 	// for every GT label
 	for (const auto& p : splits) {
@@ -353,6 +357,7 @@ TolerantEditDistanceErrors::getGenericSplitErrors(
 
 			splitError.size = overlap;
 			mstSplitErrors.push_back(splitError);
+			inTree.insert(newLabel);
 
 			for (const auto& p : splitErrors[newLabel])
 				if (!inTree.count(p.first))
