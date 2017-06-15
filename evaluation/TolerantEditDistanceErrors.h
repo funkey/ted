@@ -38,6 +38,15 @@ public:
 			location(0,0,0),
 			size(0) {}
 
+		void initFromCells(const Cell<size_t>& a, const Cell<size_t>& b) {
+
+			gtLabel = a.getGroundTruthLabel();
+			recLabel1 = a.getReconstructionLabel();
+			recLabel2 = b.getReconstructionLabel();
+		}
+
+		std::pair<size_t, size_t> getErrorLabels() { return {recLabel1, recLabel2}; }
+
 		// which GT label is split
 		size_t gtLabel;
 
@@ -53,6 +62,43 @@ public:
 		Cell<size_t>::Location location;
 
 		// the size of the split-off
+		size_t size;
+	};
+
+	struct MergeError {
+
+		MergeError() :
+			recLabel(0),
+			gtLabel1(0),
+			gtLabel2(0),
+			distance(0),
+			location(0,0,0),
+			size(0) {}
+
+		void initFromCells(const Cell<size_t>& a, const Cell<size_t>& b) {
+
+			recLabel = a.getReconstructionLabel();
+			gtLabel1 = a.getGroundTruthLabel();
+			gtLabel2 = b.getGroundTruthLabel();
+		}
+
+		std::pair<size_t, size_t> getErrorLabels() { return {gtLabel1, gtLabel2}; }
+
+		// which REC label is merging
+		size_t recLabel;
+
+		// the two GT labels that are merged
+		size_t gtLabel1;
+		size_t gtLabel2;
+
+		// the minimal distance between the two GT labels
+		double distance;
+
+		// the location of the split, between the closest locations of the two 
+		// GT labels
+		Cell<size_t>::Location location;
+
+		// the size of the merge
 		size_t size;
 	};
 
@@ -204,6 +250,11 @@ public:
 	std::vector<SplitError> getSplitErrors();
 
 	/**
+	 * Same as getSplitErrors, but for merges.
+	 */
+	std::vector<MergeError> getMergeErrors();
+
+	/**
 	 * Check whether a background label was considered for the TED errors. If 
 	 * yes, some of the split and merge errors have an interpretation as false 
 	 * positives and false negatives.
@@ -231,9 +282,18 @@ private:
 			unsigned int&     numFalsePositives,
 			size_t             backgroundLabel);
 
-	SplitError computeSplitError(
+	template <typename ErrorType>
+	ErrorType computeError(
 			const std::set<unsigned int>& cells1,
 			const std::set<unsigned int>& cells2);
+
+	// generic function to find split errors, can be used to find merge errors 
+	// as well, if _merges and _cellsByRecToGtLabel are fed with MergeError as 
+	// template argument
+	template <typename ErrorType>
+	std::vector<ErrorType> getGenericSplitErrors(
+			cell_map_t& splits,
+			cell_map_t& cellsByGtToRecLabel);
 
 	// a list of cells partitioning the image
 	std::shared_ptr<Cells> _cells;

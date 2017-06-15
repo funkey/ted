@@ -121,12 +121,30 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 			splitErrors.append(split_error);
 		}
 
+		boost::python::list mergeErrors;
+		for (const TolerantEditDistanceErrors::MergeError& mergeError : errors.getMergeErrors()) {
+
+			boost::python::dict merge_error;
+			merge_error["rec_label"] = mergeError.recLabel;
+			merge_error["gt_label_1"] = mergeError.gtLabel1;
+			merge_error["gt_label_2"] = mergeError.gtLabel2;
+			merge_error["distance"] = mergeError.distance;
+			merge_error["location"] = boost::python::make_tuple(
+					mergeError.location.z*groundTruth.getResolutionZ(),
+					mergeError.location.y*groundTruth.getResolutionY(),
+					mergeError.location.x*groundTruth.getResolutionX());
+			merge_error["size"] = mergeError.size;
+
+			mergeErrors.append(merge_error);
+		}
+
 		summary["ted_split"] = errors.getNumSplits();
 		summary["ted_merge"] = errors.getNumMerges();
 		summary["splits"] = splits;
 		summary["merges"] = merges;
 		summary["matches"] = matches;
 		summary["split_errors"] = splitErrors;
+		summary["merge_errors"] = mergeErrors;
 		if (tedParameters.reportFPsFNs) {
 			summary["ted_fp"] = errors.getNumFalsePositives();
 			summary["ted_fn"] = errors.getNumFalseNegatives();
