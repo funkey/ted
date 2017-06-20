@@ -19,7 +19,8 @@ public:
 			haveBackground(true),
 			recBackgroundLabel(0.0),
 			reportDetectionOverlap(false),
-			ignoreBackground(false) {}
+			ignoreBackground(false),
+			tedTimeout(0) {}
 
 		/**
 		 * Compute the TED (enabled by default).
@@ -71,6 +72,11 @@ public:
 		 * For VOI and RAND, ignore background pixels in the ground truth.
 		 */
 		bool ignoreBackground;
+
+		/**
+		 * Timeout for TED computation.
+		 */
+		double tedTimeout;
 	};
 
 	PyTed(const Parameters& parameters = Parameters());

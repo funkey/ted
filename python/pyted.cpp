@@ -97,6 +97,7 @@ BOOST_PYTHON_MODULE(pyted) {
 			.def_readwrite("gt_background_label", &PyTed::Parameters::gtBackgroundLabel)
 			.def_readwrite("rec_background_label", &PyTed::Parameters::recBackgroundLabel)
 			.def_readwrite("have_background", &PyTed::Parameters::haveBackground)
+			.def_readwrite("tedTimeout", &PyTed::Parameters::tedTimeout)
 			;
 
 	boost::python::class_<PyTed>("Ted")

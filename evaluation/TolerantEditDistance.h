@@ -18,7 +18,8 @@ public:
 			reportFPsFNs(false),
 			allowBackgroundAppearance(false),
 			gtBackgroundLabel(0),
-			recBackgroundLabel(0) {}
+			recBackgroundLabel(0),
+			timeout(0) {}
 
 		/**
 		* True if the ground-truth consists of skeletons. In this case, the 
@@ -49,6 +50,11 @@ public:
 		 */
 		float gtBackgroundLabel;
 		float recBackgroundLabel;
+
+		/**
+		 * Timeout for the ILP in seconds. 0 for no limit.
+		 */
+		double timeout;
 	};
 
 	TolerantEditDistance(const Parameters& parameters = Parameters());

@@ -334,6 +334,7 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 	solver->initialize(var, Binary, specialVariableTypes);
 	solver->setObjective(objective);
 	solver->setConstraints(constraints);
+	solver->setTimeout(_parameters.timeout);
 
 	std::string msg;
 	if (!solver->solve(_solution, msg)) {
