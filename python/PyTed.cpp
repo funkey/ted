@@ -16,7 +16,7 @@ PyTed::PyTed(const PyTed::Parameters& parameters) :
 		_parameters(parameters),
 		_numThreads(0) {
 
-	LOG_DEBUG(pytedlog) << "[Ted] constructed" << std::endl;
+	LOG_DEBUG(pytedlog) << "constructed" << std::endl;
 	initialize();
 }
 
