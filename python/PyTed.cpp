@@ -65,6 +65,7 @@ PyTed::createReport(PyObject* gt, PyObject* rec, PyObject* voxel_size, PyObject*
 		tedParameters.allowBackgroundAppearance = true; // to be backwards compatible, might change at some point
 		tedParameters.gtBackgroundLabel = _parameters.gtBackgroundLabel;
 		tedParameters.recBackgroundLabel = _parameters.recBackgroundLabel;
+		tedParameters.timeout = _parameters.tedTimeout;
 
 		TolerantEditDistance ted(tedParameters);
 		TolerantEditDistanceErrors errors = ted.compute(groundTruth, reconstruction);
