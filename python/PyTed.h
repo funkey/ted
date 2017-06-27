@@ -20,7 +20,8 @@ public:
 			recBackgroundLabel(0.0),
 			reportDetectionOverlap(false),
 			ignoreBackground(false),
-			tedTimeout(0) {}
+			tedTimeout(0),
+			verbosity(2) {}
 
 		/**
 		 * Compute the TED (enabled by default).
@@ -77,6 +78,17 @@ public:
 		 * Timeout for TED computation.
 		 */
 		double tedTimeout;
+
+		/**
+		 * Level of verbosity.
+		 *
+		 * 0 none
+		 * 1 error
+		 * 2 user (default)
+		 * 3 debug
+		 * 4 all
+		 */
+		int verbosity;
 	};
 
 	PyTed(const Parameters& parameters = Parameters());

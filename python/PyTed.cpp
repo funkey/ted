@@ -3,11 +3,11 @@
 #include <numpy/arrayobject.h>
 #include <util/ProgramOptions.h>
 #include <util/exceptions.h>
-#include <util/Logger.h>
 #include <evaluation/VariationOfInformation.h>
 #include <evaluation/RandIndex.h>
 #include <evaluation/TolerantEditDistance.h>
 #include <git_sha1.h>
+#include "logging.h"
 #include "PyTed.h"
 
 logger::LogChannel pytedlog("pytedlog", "[Ted] ");
@@ -15,6 +15,25 @@ logger::LogChannel pytedlog("pytedlog", "[Ted] ");
 PyTed::PyTed(const PyTed::Parameters& parameters) :
 		_parameters(parameters),
 		_numThreads(0) {
+
+	switch (parameters.verbosity) {
+
+	case 0:
+		pyted::setLogLevel(logger::Quiet);
+		break;
+	case 1:
+		pyted::setLogLevel(logger::Error);
+		break;
+	case 2:
+		pyted::setLogLevel(logger::User);
+		break;
+	case 3:
+		pyted::setLogLevel(logger::Debug);
+		break;
+	default:
+		pyted::setLogLevel(logger::All);
+		break;
+	}
 
 	LOG_DEBUG(pytedlog) << "constructed" << std::endl;
 	initialize();

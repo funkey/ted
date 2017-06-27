@@ -5,7 +5,6 @@
 #include <util/exceptions.h>
 #include <git_sha1.h>
 #include "PyTed.h"
-#include "logging.h"
 
 template <typename Map, typename K, typename V>
 const V& genericGetter(const Map& map, const K& k) { return map[k]; }
@@ -71,17 +70,6 @@ BOOST_PYTHON_MODULE(pyted) {
 
 	boost::python::register_exception_translator<Exception>(&translateException);
 
-	// Logging
-	boost::python::enum_<logger::LogLevel>("LogLevel")
-			.value("Quiet", logger::Quiet)
-			.value("Error", logger::Error)
-			.value("Debug", logger::Debug)
-			.value("All", logger::All)
-			.value("User", logger::User)
-			;
-	boost::python::def("setLogLevel", setLogLevel);
-	boost::python::def("getLogLevel", getLogLevel);
-
 	boost::python::def("version", getVersion);
 
 	boost::python::numeric::array::set_module_and_type("numpy", "ndarray");
@@ -98,6 +86,7 @@ BOOST_PYTHON_MODULE(pyted) {
 			.def_readwrite("rec_background_label", &PyTed::Parameters::recBackgroundLabel)
 			.def_readwrite("have_background", &PyTed::Parameters::haveBackground)
 			.def_readwrite("ted_timeout", &PyTed::Parameters::tedTimeout)
+			.def_readwrite("verbosity", &PyTed::Parameters::verbosity)
 			;
 
 	boost::python::class_<PyTed>("Ted")
