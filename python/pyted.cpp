@@ -86,6 +86,7 @@ BOOST_PYTHON_MODULE(pyted) {
 			.def_readwrite("rec_background_label", &PyTed::Parameters::recBackgroundLabel)
 			.def_readwrite("have_background", &PyTed::Parameters::haveBackground)
 			.def_readwrite("ted_timeout", &PyTed::Parameters::tedTimeout)
+			.def_readwrite("report_ted_error_locations", &PyTed::Parameters::reportTedErrorLocations)
 			.def_readwrite("verbosity", &PyTed::Parameters::verbosity)
 			;
 

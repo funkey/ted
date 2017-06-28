@@ -21,6 +21,7 @@ public:
 			reportDetectionOverlap(false),
 			ignoreBackground(false),
 			tedTimeout(0),
+			reportTedErrorLocations(false),
 			verbosity(2) {}
 
 		/**
@@ -78,6 +79,11 @@ public:
 		 * Timeout for TED computation.
 		 */
 		double tedTimeout;
+
+		/**
+		 * If set, TED will locate split and merge errors.
+		 */
+		bool reportTedErrorLocations;
 
 		/**
 		 * Level of verbosity.
