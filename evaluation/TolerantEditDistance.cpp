@@ -147,21 +147,6 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 	}
 	_numIndicatorVars = var;
 
-	//LOG_ALL(tedlog) << "adding constraints to ensure that rec labels don't disappear" << std::endl;
-
-	// labels can not disappear
-	for (size_t recLabel : reconstructionLabels) {
-
-		LinearConstraint constraint;
-		for (unsigned int v : getIndicatorsByRec(recLabel))
-			constraint.setCoefficient(v, 1.0);
-		constraint.setRelation(GreaterEqual);
-		constraint.setValue(1);
-		constraints.add(constraint);
-
-		//LOG_ALL(tedlog) << constraint << std::endl;
-	}
-
 	// introduce indicators for each match of ground truth label to 
 	// reconstruction label
 	for (size_t gtLabel : groundTruthLabels)
@@ -224,7 +209,7 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 		numSplits.setCoefficient(splitVar, 1);
 		for (size_t recLabel : possibleMatchesByGt[gtLabel])
 			numSplits.setCoefficient(getMatchVariable(gtLabel, recLabel), -1);
-		numSplits.setRelation(Equal);
+		numSplits.setRelation(GreaterEqual);
 		numSplits.setValue(-1);
 		constraints.add(numSplits);
 
@@ -273,7 +258,7 @@ TolerantEditDistance::minimizeErrors(const Cells& cells) {
 		numMerges.setCoefficient(mergeVar, 1);
 		for (size_t gtLabel : possibleMatchesByRec[recLabel])
 			numMerges.setCoefficient(getMatchVariable(gtLabel, recLabel), -1);
-		numMerges.setRelation(Equal);
+		numMerges.setRelation(GreaterEqual);
 		numMerges.setValue(-1);
 		constraints.add(numMerges);
 
